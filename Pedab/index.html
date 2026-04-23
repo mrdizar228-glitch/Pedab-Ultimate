@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedab Ultimate V10.1</title>
+    <title>Pedab Ultimate V11 (Online Edition)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap');
 
         * { box-sizing: border-box; font-family: 'Nunito', sans-serif !important; font-weight: 900 !important; margin: 0; padding: 0; }
         body { background-color: #0f0f1a; color: #ffffff; height: 100vh; width: 100vw; overflow: hidden; display: flex; }
+
+        /* --- ЕКРАН ЗАВАНТАЖЕННЯ СЕРВЕРА --- */
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0f0f1a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { border: 8px solid #252545; border-top: 8px solid #ff3366; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* --- СИСТЕМА СПОВІЩЕНЬ --- */
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
@@ -19,7 +24,7 @@
         @keyframes dropDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* --- АВТОРИЗАЦІЯ --- */
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #1a1a2e; display: flex; justify-content: center; align-items: center; z-index: 5000; }
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #1a1a2e; display: flex; justify-content: center; align-items: center; z-index: 5000; display: none; }
         .auth-box { background-color: #252545; padding: 40px; border-radius: 30px; border: 5px solid #ff3366; width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
         .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .auth-tab { flex: 1; padding: 10px; cursor: pointer; background: #1a1a2e; border-radius: 10px; border: 2px solid transparent; }
@@ -75,14 +80,22 @@
         /* МОДАЛЬНЕ ВІКНО КАНАЛУ */
         #channel-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 15, 26, 0.9); z-index: 6000; justify-content: center; align-items: center; }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 </head>
 <body>
+
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <h2 style="color: #ff3366;">Підключення до серверів Pedab...</h2>
+    </div>
 
     <div id="toast-container"></div>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color: #ff3366; margin-bottom: 20px;">PEDAB ULTIMATE V10.1</h1>
+            <h1 style="color: #ff3366; margin-bottom: 20px;">PEDAB V11 ONLINE</h1>
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="LOGIN_TAB">LOGIN</div>
                 <div class="auth-tab" id="tab-reg" onclick="setAuthMode('reg')" data-i18n="REG_TAB">REGISTER</div>
@@ -97,8 +110,7 @@
     </div>
 
     <div id="channel-modal">
-        <div class="auth-box" id="channel-modal-content" style="width: 450px; padding: 30px;">
-            </div>
+        <div class="auth-box" id="channel-modal-content" style="width: 450px; padding: 30px;"></div>
     </div>
 
     <div id="app-container">
@@ -142,7 +154,21 @@
     </div>
 
     <script>
-        // --- СЛОВНИК ПЕРЕКЛАДІВ ---
+        // --- 1. ПІДКЛЮЧЕННЯ FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDM3_nh0949pFvsmkYWs_NV4mpVdoezUsQ",
+            authDomain: "pedab-ultimate-4c325.firebaseapp.com",
+            databaseURL: "https://pedab-ultimate-4c325-default-rtdb.firebaseio.com",
+            projectId: "pedab-ultimate-4c325",
+            storageBucket: "pedab-ultimate-4c325.firebasestorage.app",
+            messagingSenderId: "446805006463",
+            appId: "1:446805006463:web:9d81e96a245235a128874a"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const fdb = firebase.database(); // Наша Хмарна База Даних
+
+        // СЛОВНИК ПЕРЕКЛАДІВ (Без змін)
         const I18N = {
             "English": {
                 LOGIN_TAB: "LOGIN", REG_TAB: "REGISTER", NICK_PH: "Create nickname", ID_PH: "Your ID", PASS_PH: "Password", ENTER_BTN: "ENTER", REG_BTN: "REGISTER",
@@ -162,69 +188,13 @@
                 LEAVE_CHAN: "Покинути канал", DEL_CHAN: "Видалити назавжди", CANCEL: "Скасувати", SETTINGS_CHAN: "⚙️ Налаштування каналу",
                 S_NICK: "НІКНЕЙМ", S_PASS: "ЗМІНИТИ ПАРОЛЬ", S_UPLOAD: "ЗАВАНТАЖИТИ СВОЮ ІКОНКУ (МАКС 0.5 МБ)", S_STD: "СТАНДАРТНІ ІКОНКИ", S_LANG: "МОВА ІНТЕРФЕЙСУ"
             },
-            "Español": {
-                LOGIN_TAB: "ACCESO", REG_TAB: "REGISTRO", NICK_PH: "Crear apodo", ID_PH: "Tu ID", PASS_PH: "Contraseña", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR",
-                NAV_FRIENDS: "👥 MIS AMIGOS", NAV_FIND_FRIEND: "🔍 BUSCAR AMIGO", NAV_REQUESTS: "📩 SOLICITUDES", NAV_CHANNELS: "📢 CANALES", NAV_FIND_CHANNEL: "🔎 BUSCAR CANAL", NAV_SETTINGS: "⚙️ AJUSTES",
-                CHOOSE_TAB: "Seleccionar pestaña", MSG_PH: "Escribe un mensaje...", SEND_REQ: "ENVIAR SOLICITUD", ACCEPT: "ACEPTAR", WRITE: "MENSAJE", OPEN: "ABRIR",
-                CREATE: "CREAR", JOIN: "UNIRSE", SAVE: "GUARDAR", NO_MSGS: "No hay mensajes.", NO_FRIENDS: "¡Busca amigos por ID!", NO_REQS: "Sin solicitudes.", NO_CHANS: "No has añadido canales.",
-                CHAN_NAME: "Nombre del canal", CHAN_ID: "ID del canal", CHAN_PASS: "Contraseña", 
-                LEAVE_CHAN: "Salir del canal", DEL_CHAN: "Eliminar para siempre", CANCEL: "Cancelar", SETTINGS_CHAN: "⚙️ Ajustes del canal",
-                S_NICK: "APODO", S_PASS: "CAMBIAR CONTRASEÑA", S_UPLOAD: "SUBIR ICONO (MÁX 0.5 MB)", S_STD: "ICONOS ESTÁNDAR", S_LANG: "IDIOMA"
-            },
-            "Português": {
-                LOGIN_TAB: "ENTRAR", REG_TAB: "REGISTRAR", NICK_PH: "Criar apelido", ID_PH: "Seu ID", PASS_PH: "Senha", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR",
-                NAV_FRIENDS: "👥 MEUS AMIGOS", NAV_FIND_FRIEND: "🔍 PROCURAR AMIGO", NAV_REQUESTS: "📩 PEDIDOS", NAV_CHANNELS: "📢 CANAIS", NAV_FIND_CHANNEL: "🔎 PROCURAR CANAL", NAV_SETTINGS: "⚙️ CONFIGURAÇÕES",
-                CHOOSE_TAB: "Selecionar aba", MSG_PH: "Digite uma mensagem...", SEND_REQ: "ENVIAR PEDIDO", ACCEPT: "ACEITAR", WRITE: "MENSAGEM", OPEN: "ABRIR",
-                CREATE: "CRIAR", JOIN: "ENTRAR", SAVE: "SALVAR", NO_MSGS: "Sem mensagens.", NO_FRIENDS: "Encontre amigos por ID!", NO_REQS: "Sem pedidos.", NO_CHANS: "Nenhum canal adicionado.",
-                CHAN_NAME: "Nome do canal", CHAN_ID: "ID do canal", CHAN_PASS: "Senha", 
-                LEAVE_CHAN: "Sair do canal", DEL_CHAN: "Excluir para sempre", CANCEL: "Cancelar", SETTINGS_CHAN: "⚙️ Configurações do canal",
-                S_NICK: "APELIDO", S_PASS: "MUDAR SENHA", S_UPLOAD: "ENVIAR ÍCONE (MÁX 0.5 MB)", S_STD: "ÍCONES PADRÃO", S_LANG: "IDIOMA"
-            },
-            "العربية": {
-                LOGIN_TAB: "دخول", REG_TAB: "تسجيل", NICK_PH: "أنشئ لقب", ID_PH: "المعرف الخاص بك", PASS_PH: "كلمة المرور", ENTER_BTN: "دخول", REG_BTN: "تسجيل",
-                NAV_FRIENDS: "👥 أصدقائي", NAV_FIND_FRIEND: "🔍 ابحث عن صديق", NAV_REQUESTS: "📩 الطلبات", NAV_CHANNELS: "📢 القنوات", NAV_FIND_CHANNEL: "🔎 ابحث عن قناة", NAV_SETTINGS: "⚙️ الإعدادات",
-                CHOOSE_TAB: "حدد علامة تبويب", MSG_PH: "اكتب رسالة...", SEND_REQ: "إرسال طلب", ACCEPT: "قبول", WRITE: "رسالة", OPEN: "فتح",
-                CREATE: "إنشاء", JOIN: "انضمام", SAVE: "حفظ الإعدادات", NO_MSGS: "لا توجد رسائل.", NO_FRIENDS: "ابحث عن أصدقاء بالمعرف!", NO_REQS: "لا طلبات.", NO_CHANS: "لم تقم بإضافة قنوات.",
-                CHAN_NAME: "اسم القناة", CHAN_ID: "معرف القناة", CHAN_PASS: "كلمة المرور", 
-                LEAVE_CHAN: "مغادرة القناة", DEL_CHAN: "حذف للأبد", CANCEL: "إلغاء", SETTINGS_CHAN: "⚙️ إعدادات القناة",
-                S_NICK: "اللقب", S_PASS: "تغيير كلمة المرور", S_UPLOAD: "رفع أيقونة (حد أقصى 0.5 ميجابايت)", S_STD: "الأيقونات القياسية", S_LANG: "لغة الواجهة"
-            },
-            "বাংলা": {
-                LOGIN_TAB: "লগইন", REG_TAB: "নিবন্ধন", NICK_PH: "ডাকনাম তৈরি করুন", ID_PH: "আপনার আইডি", PASS_PH: "পাসওয়ার্ড", ENTER_BTN: "প্রবেশ করুন", REG_BTN: "নিবন্ধন করুন",
-                NAV_FRIENDS: "👥 আমার বন্ধুরা", NAV_FIND_FRIEND: "🔍 বন্ধু খুঁজুন", NAV_REQUESTS: "📩 অনুরোধ", NAV_CHANNELS: "📢 চ্যানেল", NAV_FIND_CHANNEL: "🔎 চ্যানেল খুঁজুন", NAV_SETTINGS: "⚙️ সেটিংস",
-                CHOOSE_TAB: "ট্যাব নির্বাচন করুন", MSG_PH: "একটি বার্তা লিখুন...", SEND_REQ: "অনুরোধ পাঠান", ACCEPT: "গ্রহণ করুন", WRITE: "বার্তা", OPEN: "খুলুন",
-                CREATE: "তৈরি করুন", JOIN: "যোগ দিন", SAVE: "সেটিংস সংরক্ষণ করুন", NO_MSGS: "কোনো বার্তা নেই।", NO_FRIENDS: "আইডি দিয়ে বন্ধু খুঁজুন!", NO_REQS: "কোনো অনুরোধ নেই।", NO_CHANS: "কোনো চ্যানেল নেই।",
-                CHAN_NAME: "চ্যানেলের নাম", CHAN_ID: "চ্যানেল আইডি", CHAN_PASS: "পাসওয়ার্ড", 
-                LEAVE_CHAN: "চ্যানেল ছাড়ুন", DEL_CHAN: "চিরতরে মুছুন", CANCEL: "বাতিল", SETTINGS_CHAN: "⚙️ চ্যানেল সেটিংস",
-                S_NICK: "ডাকনাম", S_PASS: "পাসওয়ার্ড পরিবর্তন", S_UPLOAD: "আইকন আপলোড (সর্বোচ্চ ০.৫ এমবি)", S_STD: "স্ট্যান্ডার্ড আইকন", S_LANG: "ভাষা"
-            },
-            "हिन्दी / اردو": {
-                LOGIN_TAB: "लॉग इन / لاگ ان", REG_TAB: "रजिस्टर / رجسٹر", NICK_PH: "उपनाम / عرفی नाम", ID_PH: "आपकी आईडी / آپ کی آئی ڈی", PASS_PH: "पासवर्ड / پاس ورڈ", ENTER_BTN: "प्रवेश / داخل", REG_BTN: "रजिस्टर / رجسٹر",
-                NAV_FRIENDS: "👥 मेरे दोस्त", NAV_FIND_FRIEND: "🔍 दोस्त खोजें", NAV_REQUESTS: "📩 अनुरोध", NAV_CHANNELS: "📢 चैनल", NAV_FIND_CHANNEL: "🔎 चैनल खोजें", NAV_SETTINGS: "⚙️ सेटिंग्स",
-                CHOOSE_TAB: "टैब चुनें", MSG_PH: "संदेश लिखें...", SEND_REQ: "अनुरोध भेजें", ACCEPT: "स्वीकारें", WRITE: "संदेश", OPEN: "खोलें",
-                CREATE: "बनाएं", JOIN: "शामिल हों", SAVE: "सेव करें", NO_MSGS: "कोई संदेश नहीं.", NO_FRIENDS: "आईडी से दोस्त खोजें!", NO_REQS: "कोई अनुरोध नहीं.", NO_CHANS: "कोई चैनल नहीं.",
-                CHAN_NAME: "चैनल का नाम", CHAN_ID: "चैनल आईडी", CHAN_PASS: "पासवर्ड", 
-                LEAVE_CHAN: "चैनल छोड़ें", DEL_CHAN: "हमेशा के लिए हटाएं", CANCEL: "रद्द करें", SETTINGS_CHAN: "⚙️ चैनल सेटिंग्स",
-                S_NICK: "उपनाम", S_PASS: "पासवर्ड बदलें", S_UPLOAD: "आइकन अपलोड करें (0.5 MB)", S_STD: "मानक आइकन", S_LANG: "भाषा"
-            },
-            "日本語": {
-                LOGIN_TAB: "ログイン", REG_TAB: "登録", NICK_PH: "ニックネーム", ID_PH: "あなたのID", PASS_PH: "パスワード", ENTER_BTN: "入る", REG_BTN: "登録する",
-                NAV_FRIENDS: "👥 友達", NAV_FIND_FRIEND: "🔍 友達を探す", NAV_REQUESTS: "📩 リクエスト", NAV_CHANNELS: "📢 チャンネル", NAV_FIND_CHANNEL: "🔎 チャンネルを探す", NAV_SETTINGS: "⚙️ 設定",
-                CHOOSE_TAB: "タブを選択", MSG_PH: "メッセージを入力...", SEND_REQ: "リクエストを送信", ACCEPT: "承認", WRITE: "メッセージ", OPEN: "開く",
-                CREATE: "作成", JOIN: "参加する", SAVE: "保存する", NO_MSGS: "メッセージはありません。", NO_FRIENDS: "IDで友達を探そう！", NO_REQS: "リクエストはありません。", NO_CHANS: "チャンネルがありません。",
-                CHAN_NAME: "チャンネル名", CHAN_ID: "チャンネルID", CHAN_PASS: "パスワード", 
-                LEAVE_CHAN: "退出する", DEL_CHAN: "完全に削除", CANCEL: "キャンセル", SETTINGS_CHAN: "⚙️ チャンネル設定",
-                S_NICK: "ニックネーム", S_PASS: "パスワード変更", S_UPLOAD: "アイコンをアップロード (最大0.5MB)", S_STD: "標準アイコン", S_LANG: "言語"
-            },
-            "中文": {
-                LOGIN_TAB: "登录", REG_TAB: "注册", NICK_PH: "创建昵称", ID_PH: "你的ID", PASS_PH: "密码", ENTER_BTN: "进入", REG_BTN: "注册",
-                NAV_FRIENDS: "👥 我的朋友", NAV_FIND_FRIEND: "🔍 寻找朋友", NAV_REQUESTS: "📩 请求", NAV_CHANNELS: "📢 频道", NAV_FIND_CHANNEL: "🔎 寻找频道", NAV_SETTINGS: "⚙️ 设置",
-                CHOOSE_TAB: "选择标签", MSG_PH: "输入消息...", SEND_REQ: "发送请求", ACCEPT: "接受", WRITE: "发消息", OPEN: "打开",
-                CREATE: "创建", JOIN: "加入", SAVE: "保存设置", NO_MSGS: "暂无消息。", NO_FRIENDS: "通过ID寻找朋友！", NO_REQS: "暂无请求。", NO_CHANS: "你还没有添加任何频道。",
-                CHAN_NAME: "频道名称", CHAN_ID: "频道ID", CHAN_PASS: "密码", 
-                LEAVE_CHAN: "离开频道", DEL_CHAN: "永久删除", CANCEL: "取消", SETTINGS_CHAN: "⚙️ 频道设置",
-                S_NICK: "昵称", S_PASS: "修改密码", S_UPLOAD: "上传图标 (最大 0.5 MB)", S_STD: "标准图标", S_LANG: "语言"
-            }
+            "Español": { LOGIN_TAB: "ACCESO", REG_TAB: "REGISTRO", NICK_PH: "Crear apodo", ID_PH: "Tu ID", PASS_PH: "Contraseña", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR", NAV_FRIENDS: "👥 MIS AMIGOS", NAV_FIND_FRIEND: "🔍 BUSCAR AMIGO", NAV_REQUESTS: "📩 SOLICITUDES", NAV_CHANNELS: "📢 CANALES", NAV_FIND_CHANNEL: "🔎 BUSCAR CANAL", NAV_SETTINGS: "⚙️ AJUSTES", CHOOSE_TAB: "Seleccionar pestaña", MSG_PH: "Escribe un mensaje...", SEND_REQ: "ENVIAR SOLICITUD", ACCEPT: "ACEPTAR", WRITE: "MENSAJE", OPEN: "ABRIR", CREATE: "CREAR", JOIN: "UNIRSE", SAVE: "GUARDAR", NO_MSGS: "No hay mensajes.", NO_FRIENDS: "¡Busca amigos por ID!", NO_REQS: "Sin solicitudes.", NO_CHANS: "No has añadido canales.", CHAN_NAME: "Nombre del canal", CHAN_ID: "ID del canal", CHAN_PASS: "Contraseña", LEAVE_CHAN: "Salir del canal", DEL_CHAN: "Eliminar para siempre", CANCEL: "Cancelar", SETTINGS_CHAN: "⚙️ Ajustes del canal", S_NICK: "APODO", S_PASS: "CAMBIAR CONTRASEÑA", S_UPLOAD: "SUBIR ICONO (MÁX 0.5 MB)", S_STD: "ICONOS ESTÁNDAR", S_LANG: "IDIOMA" },
+            "Português": { LOGIN_TAB: "ENTRAR", REG_TAB: "REGISTRAR", NICK_PH: "Criar apelido", ID_PH: "Seu ID", PASS_PH: "Senha", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR", NAV_FRIENDS: "👥 MEUS AMIGOS", NAV_FIND_FRIEND: "🔍 PROCURAR AMIGO", NAV_REQUESTS: "📩 PEDIDOS", NAV_CHANNELS: "📢 CANAIS", NAV_FIND_CHANNEL: "🔎 PROCURAR CANAL", NAV_SETTINGS: "⚙️ CONFIGURAÇÕES", CHOOSE_TAB: "Selecionar aba", MSG_PH: "Digite uma mensagem...", SEND_REQ: "ENVIAR PEDIDO", ACCEPT: "ACEITAR", WRITE: "MENSAGEM", OPEN: "ABRIR", CREATE: "CRIAR", JOIN: "ENTRAR", SAVE: "SALVAR", NO_MSGS: "Sem mensagens.", NO_FRIENDS: "Encontre amigos por ID!", NO_REQS: "Sem pedidos.", NO_CHANS: "Nenhum canal adicionado.", CHAN_NAME: "Nome do canal", CHAN_ID: "ID do canal", CHAN_PASS: "Senha", LEAVE_CHAN: "Sair do canal", DEL_CHAN: "Excluir para sempre", CANCEL: "Cancelar", SETTINGS_CHAN: "⚙️ Configurações do canal", S_NICK: "APELIDO", S_PASS: "MUDAR SENHA", S_UPLOAD: "ENVIAR ÍCONE (MÁX 0.5 MB)", S_STD: "ÍCONES PADRÃO", S_LANG: "IDIOMA" },
+            "العربية": { LOGIN_TAB: "دخول", REG_TAB: "تسجيل", NICK_PH: "أنشئ لقب", ID_PH: "المعرف الخاص بك", PASS_PH: "كلمة المرور", ENTER_BTN: "دخول", REG_BTN: "تسجيل", NAV_FRIENDS: "👥 أصدقائي", NAV_FIND_FRIEND: "🔍 ابحث عن صديق", NAV_REQUESTS: "📩 الطلبات", NAV_CHANNELS: "📢 القنوات", NAV_FIND_CHANNEL: "🔎 ابحث عن قناة", NAV_SETTINGS: "⚙️ الإعدادات", CHOOSE_TAB: "حدد علامة تبويب", MSG_PH: "اكتب رسالة...", SEND_REQ: "إرسال طلب", ACCEPT: "قبول", WRITE: "رسالة", OPEN: "فتح", CREATE: "إنشاء", JOIN: "انضمام", SAVE: "حفظ الإعدادات", NO_MSGS: "لا توجد رسائل.", NO_FRIENDS: "ابحث عن أصدقاء بالمعرف!", NO_REQS: "لا طلبات.", NO_CHANS: "لم تقم بإضافة قنوات.", CHAN_NAME: "اسم القناة", CHAN_ID: "معرف القناة", CHAN_PASS: "كلمة المرور", LEAVE_CHAN: "مغادرة القناة", DEL_CHAN: "حذف للأبد", CANCEL: "إلغاء", SETTINGS_CHAN: "⚙️ إعدادات القناة", S_NICK: "اللقب", S_PASS: "تغيير كلمة المرور", S_UPLOAD: "رفع أيقونة (حد أقصى 0.5 ميجابايت)", S_STD: "الأيقونات القياسية", S_LANG: "لغة الواجهة" },
+            "বাংলা": { LOGIN_TAB: "লগইন", REG_TAB: "নিবন্ধন", NICK_PH: "ডাকনাম তৈরি করুন", ID_PH: "আপনার আইডি", PASS_PH: "পাসওয়ার্ড", ENTER_BTN: "প্রবেশ করুন", REG_BTN: "নিবন্ধন করুন", NAV_FRIENDS: "👥 আমার বন্ধুরা", NAV_FIND_FRIEND: "🔍 বন্ধু খুঁজুন", NAV_REQUESTS: "📩 অনুরোধ", NAV_CHANNELS: "📢 চ্যানেল", NAV_FIND_CHANNEL: "🔎 চ্যানেল খুঁজুন", NAV_SETTINGS: "⚙️ সেটিংস", CHOOSE_TAB: "ট্যাব নির্বাচন করুন", MSG_PH: "একটি বার্তা লিখুন...", SEND_REQ: "অনুরোধ পাঠান", ACCEPT: "গ্রহণ করুন", WRITE: "বার্তা", OPEN: "খুলুন", CREATE: "তৈরি করুন", JOIN: "যোগ দিন", SAVE: "সেটিংস সংরক্ষণ করুন", NO_MSGS: "কোনো বার্তা নেই।", NO_FRIENDS: "আইডি দিয়ে বন্ধু খুঁজুন!", NO_REQS: "কোনো অনুরোধ নেই।", NO_CHANS: "কোনো চ্যানেল নেই।", CHAN_NAME: "চ্যানেলের নাম", CHAN_ID: "চ্যানেল আইডি", CHAN_PASS: "পাসওয়ার্ড", LEAVE_CHAN: "চ্যানেল ছাড়ুন", DEL_CHAN: "চিরতরে মুছুন", CANCEL: "বাতিল", SETTINGS_CHAN: "⚙️ চ্যানেল সেটিংস", S_NICK: "ডাকনাম", S_PASS: "পাসওয়ার্ড পরিবর্তন", S_UPLOAD: "আইকন আপলোড (সর্বোচ্চ ০.৫ এমবি)", S_STD: "স্ট্যান্ডার্ড আইকন", S_LANG: "ভাষা" },
+            "हिन्दी / اردو": { LOGIN_TAB: "लॉग इन / لاگ ان", REG_TAB: "रजिस्टर / رجسٹر", NICK_PH: "उपनाम / عرفی नाम", ID_PH: "आपकी आईडी / آپ کی آئی ڈی", PASS_PH: "पासवर्ड / پاس ورڈ", ENTER_BTN: "प्रवेश / داخل", REG_BTN: "रजिस्टर / رجسٹر", NAV_FRIENDS: "👥 मेरे दोस्त", NAV_FIND_FRIEND: "🔍 दोस्त खोजें", NAV_REQUESTS: "📩 अनुरोध", NAV_CHANNELS: "📢 चैनल", NAV_FIND_CHANNEL: "🔎 चैनल खोजें", NAV_SETTINGS: "⚙️ सेटिंग्स", CHOOSE_TAB: "टैब चुनें", MSG_PH: "संदेश लिखें...", SEND_REQ: "अनुरोध भेजें", ACCEPT: "स्वीकारें", WRITE: "संदेश", OPEN: "खोलें", CREATE: "बनाएं", JOIN: "शामिल हों", SAVE: "सेव करें", NO_MSGS: "कोई संदेश नहीं.", NO_FRIENDS: "आईडी से दोस्त खोजें!", NO_REQS: "कोई अनुरोध नहीं.", NO_CHANS: "कोई चैनल नहीं.", CHAN_NAME: "चैनल का नाम", CHAN_ID: "चैनल आईडी", CHAN_PASS: "पासवर्ड", LEAVE_CHAN: "चैनल छोड़ें", DEL_CHAN: "हमेशा के लिए हटाएं", CANCEL: "रद्द करें", SETTINGS_CHAN: "⚙️ चैनल सेटिंग्स", S_NICK: "उपनाम", S_PASS: "पासवर्ड बदलें", S_UPLOAD: "आइकन अपलोड करें (0.5 MB)", S_STD: "मानक आइकन", S_LANG: "भाषा" },
+            "日本語": { LOGIN_TAB: "ログイン", REG_TAB: "登録", NICK_PH: "ニックネーム", ID_PH: "あなたのID", PASS_PH: "パスワード", ENTER_BTN: "入る", REG_BTN: "登録する", NAV_FRIENDS: "👥 友達", NAV_FIND_FRIEND: "🔍 友達を探す", NAV_REQUESTS: "📩 リクエスト", NAV_CHANNELS: "📢 チャンネル", NAV_FIND_CHANNEL: "🔎 チャンネルを探す", NAV_SETTINGS: "⚙️ 設定", CHOOSE_TAB: "タブを選択", MSG_PH: "メッセージを入力...", SEND_REQ: "リクエストを送信", ACCEPT: "承認", WRITE: "メッセージ", OPEN: "開く", CREATE: "作成", JOIN: "参加する", SAVE: "保存する", NO_MSGS: "メッセージはありません。", NO_FRIENDS: "IDで友達を探そう！", NO_REQS: "リクエストはありません。", NO_CHANS: "チャンネルがありません。", CHAN_NAME: "チャンネル名", CHAN_ID: "チャンネルID", CHAN_PASS: "パスワード", LEAVE_CHAN: "退出する", DEL_CHAN: "完全に削除", CANCEL: "キャンセル", SETTINGS_CHAN: "⚙️ チャンネル設定", S_NICK: "ニックネーム", S_PASS: "パスワード変更", S_UPLOAD: "アイコンをアップロード (最大0.5MB)", S_STD: "標準アイコン", S_LANG: "言語" },
+            "中文": { LOGIN_TAB: "登录", REG_TAB: "注册", NICK_PH: "创建昵称", ID_PH: "你的ID", PASS_PH: "密码", ENTER_BTN: "进入", REG_BTN: "注册", NAV_FRIENDS: "👥 我的朋友", NAV_FIND_FRIEND: "🔍 寻找朋友", NAV_REQUESTS: "📩 请求", NAV_CHANNELS: "📢 频道", NAV_FIND_CHANNEL: "🔎 寻找频道", NAV_SETTINGS: "⚙️ 设置", CHOOSE_TAB: "选择标签", MSG_PH: "输入消息...", SEND_REQ: "发送请求", ACCEPT: "接受", WRITE: "发消息", OPEN: "打开", CREATE: "创建", JOIN: "加入", SAVE: "保存设置", NO_MSGS: "暂无消息。", NO_FRIENDS: "通过ID寻找朋友！", NO_REQS: "暂无请求。", NO_CHANS: "你还没有添加任何频道。", CHAN_NAME: "频道名称", CHAN_ID: "频道ID", CHAN_PASS: "密码", LEAVE_CHAN: "离开频道", DEL_CHAN: "永久删除", CANCEL: "取消", SETTINGS_CHAN: "⚙️ 频道设置", S_NICK: "昵称", S_PASS: "修改密码", S_UPLOAD: "上传图标 (最大 0.5 MB)", S_STD: "标准图标", S_LANG: "语言" }
         };
 
         function getText(key) {
@@ -237,22 +207,48 @@
             document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = getText(el.getAttribute('data-i18n-ph')); });
         }
 
-        // --- СИСТЕМА СПОВІЩЕНЬ ---
         function showToast(text, type = 'green') {
             const container = document.getElementById('toast-container'); const toast = document.createElement('div');
             toast.className = `toast ${type}`; toast.innerText = text; container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // --- БАЗА ДАНИХ ТА СИНХРОНІЗАЦІЯ ---
-        let db = JSON.parse(localStorage.getItem('pedab_v10_1_db')) || { users: {}, nicks: {}, channels: {}, messages: {} };
+        // --- БАЗА ДАНИХ FIREBASE (Тепер ми беремо дані з інтернету!) ---
+        let db = { users: {}, nicks: {}, channels: {}, messages: {} };
         let currentUser = null; let authMode = 'login'; let currentView = 'friends'; let activeChatId = null; let chatType = null; 
+        let isDbLoaded = false;
 
-        function saveDB() { localStorage.setItem('pedab_v10_1_db', JSON.stringify(db)); refreshUI(); }
-        window.addEventListener('storage', (e) => { if (e.key === 'pedab_v10_1_db') { db = JSON.parse(e.newValue); refreshUI(); } });
+        // Постійно слухаємо сервер. Якщо хтось написав - оновлюємося!
+        fdb.ref('pedab_global_db').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                db = data;
+                if(!db.users) db.users = {};
+                if(!db.nicks) db.nicks = {};
+                if(!db.channels) db.channels = {};
+                if(!db.messages) db.messages = {};
+            }
+            
+            // Якщо це перше завантаження - ховаємо екран завантаження і показуємо вхід
+            if (!isDbLoaded) {
+                isDbLoaded = true;
+                document.getElementById('loading-screen').style.display = 'none';
+                if (!currentUser) document.getElementById('auth-screen').style.display = 'flex';
+            }
+            
+            refreshUI();
+        });
+
+        // Записуємо на сервер (Замість старого localStorage)
+        function saveDB() { 
+            fdb.ref('pedab_global_db').set(db); 
+            // refreshUI викликається автоматично завдяки fdb.ref().on('value')
+        }
 
         function refreshUI() {
             if (!currentUser) { applyLanguage(); return; }
+            if(!db.users[currentUser.id]) return; // Якщо акаунт був видалений з іншого місця
+            
             if(!db.users[currentUser.id].channels) db.users[currentUser.id].channels = [];
             if(!db.users[currentUser.id].lang) db.users[currentUser.id].lang = "English";
             
@@ -271,7 +267,7 @@
         function toggleEmojiPicker() { const p = document.getElementById('emoji-picker'); p.style.display = (p.style.display === 'flex') ? 'none' : 'flex'; }
         function addEmoji(emoji) { const i = document.getElementById('msg-input'); i.value += emoji; document.getElementById('emoji-picker').style.display = 'none'; i.focus(); }
 
-        // --- МЕДІА (з лімітом 0.5 МБ) ---
+        // --- МЕДІА ---
         function handleFileUpload(event) {
             const file = event.target.files[0]; if (!file || !activeChatId) return;
             if (file.size > 500000) { showToast("Файл завеликий! Макс 0.5 МБ", "yellow"); event.target.value = ''; return; }
@@ -280,7 +276,7 @@
                 const roomId = chatType === 'channel' ? 'chan_' + activeChatId : getChatRoomId(currentUser.id, activeChatId);
                 if (!db.messages[roomId]) db.messages[roomId] = [];
                 db.messages[roomId].push({ from: currentUser.id, text: e.target.result, type: file.type.startsWith('video/') ? 'video' : 'image' });
-                try { saveDB(); } catch(error) { showToast("Помилка бази даних! Файл не збережено.", "red"); }
+                saveDB(); 
             }; reader.readAsDataURL(file); event.target.value = '';
         }
 
@@ -388,7 +384,7 @@
             }
         }
 
-        // Логіка Друзів та Каналів (Базова)
+        // Логіка Друзів та Каналів
         function sendFriendRequest() { const targetId = document.getElementById('search-id').value.trim(); if (!targetId || targetId === currentUser.id) return showToast("Невірний ID!", "red"); if (!db.users[targetId]) return showToast("ID не знайдено!", "red"); if (db.users[targetId].requests.includes(currentUser.id)) return; if (currentUser.friends.includes(targetId)) return; db.users[targetId].requests.push(currentUser.id); saveDB(); showToast("Запит надіслано!", "green"); document.getElementById('search-id').value = ""; }
         function acceptFriend(senderId) { currentUser.friends.push(senderId); db.users[senderId].friends.push(currentUser.id); currentUser.requests = currentUser.requests.filter(id => id !== senderId); saveDB(); showToast("Запит прийнято!", "green"); }
         function createChannel() { const name = document.getElementById('new-chan-name').value.trim(); const id = document.getElementById('new-chan-id').value.trim(); const pass = document.getElementById('new-chan-pass').value.trim(); if(!name || !id) return showToast("Введіть назву та ID!", "red"); if(db.channels[id]) return showToast("Канал з таким ID вже існує!", "red"); db.channels[id] = { name, pass, icon: "", owner: currentUser.id }; currentUser.channels.push(id); saveDB(); showToast("Канал створено!", "green"); setView('channels'); }
@@ -513,7 +509,6 @@
         }
         document.getElementById('msg-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMsg(); });
         
-        // Запуск перекладу при завантаженні (Англійська за замовчуванням)
         applyLanguage();
     </script>
 </body>
