@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedab Ultimate V10.1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap');
+
+        * { box-sizing: border-box; font-family: 'Nunito', sans-serif !important; font-weight: 900 !important; margin: 0; padding: 0; }
+        body { background-color: #0f0f1a; color: #ffffff; height: 100vh; width: 100vw; overflow: hidden; display: flex; }
+
+        /* --- СИСТЕМА СПОВІЩЕНЬ --- */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { padding: 15px 30px; border-radius: 12px; font-size: 16px; color: white; animation: dropDown 0.3s forwards; transition: opacity 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 1px; }
+        .toast.green { background: #28a745; }
+        .toast.red { background: #dc3545; }
+        .toast.yellow { background: #ffc107; color: #000; }
+        @keyframes dropDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- АВТОРИЗАЦІЯ --- */
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #1a1a2e; display: flex; justify-content: center; align-items: center; z-index: 5000; }
+        .auth-box { background-color: #252545; padding: 40px; border-radius: 30px; border: 5px solid #ff3366; width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .auth-tab { flex: 1; padding: 10px; cursor: pointer; background: #1a1a2e; border-radius: 10px; border: 2px solid transparent; }
+        .auth-tab.active { border-color: #ff3366; background: #ff3366; }
+        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 3px solid #3a3a5a; background-color: #0f0f1a; color: white; font-size: 16px; outline: none; }
+        .btn { width: 100%; padding: 15px; margin-top: 15px; border-radius: 12px; border: none; background-color: #ff3366; color: white; font-size: 18px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn:hover { background-color: #ff5588; transform: scale(1.02); }
+
+        /* --- ІНТЕРФЕЙС --- */
+        #app-container { display: none; width: 100%; height: 100%; position: relative; }
+        .sidebar { width: 380px; background-color: #161625; border-right: 4px solid #252545; display: flex; flex-direction: column; z-index: 10; }
+        .nav-item { padding: 15px; cursor: pointer; border-radius: 15px; margin: 5px 10px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background-color: #252545; color: #ff3366; }
+        .plus-btn { background: #ff3366; border: none; color: white; width: 30px; height: 30px; border-radius: 8px; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .plus-btn:hover { background: white; color: #ff3366; }
+
+        /* АВАТАРИ */
+        .avatar { width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; color: white; flex-shrink: 0; border: 3px solid #ffffff; object-fit: cover; }
+        .friend-avatar { background-color: #8a2be2; }
+        .stranger-avatar { background-color: #0000ff; }
+        .error-avatar { background-color: #808080; }
+
+        /* ОСНОВНА ЧАСТИНА */
+        .main-view { flex: 1; display: flex; flex-direction: column; background-color: #0f0f1a; position: relative;}
+        .view-header { padding: 20px 25px; background: #1a1a2e; border-bottom: 4px solid #252545; font-size: 24px; display: flex; align-items: center; gap: 15px; }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;}
+        .user-row { background: #252545; padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 20px; margin-bottom: 15px; }
+        .action-btn { padding: 10px 20px; border-radius: 10px; border: none; background: #ff3366; color: white; cursor: pointer; margin-left: auto; }
+
+        /* ЧАТ */
+        .message-wrap { display: flex; flex-direction: column; max-width: 60%; }
+        .message-wrap.sent { align-self: flex-end; align-items: flex-end; }
+        .message-wrap.received { align-self: flex-start; align-items: flex-start; }
+        .sender-id { font-size: 12px; color: #888; margin-bottom: 5px; margin-left: 5px; margin-right: 5px; }
+        
+        .message { padding: 15px; border-radius: 15px; font-size: 16px; word-wrap: break-word; }
+        .message-wrap.sent .message { background-color: #ff3366; border-bottom-right-radius: 0; }
+        .message-wrap.received .message { background-color: #252545; border-bottom-left-radius: 0; }
+        .media-content { max-width: 100%; border-radius: 10px; max-height: 250px; }
+
+        /* ПАНЕЛЬ ВВОДУ */
+        .chat-input-area { display: none; padding: 20px; background-color: #1a1a2e; border-top: 4px solid #252545; gap: 10px; align-items: center; position: relative; }
+        .chat-input-area input[type="text"] { margin: 0; flex: 1; }
+        .chat-input-area .btn-send { margin: 0; width: auto; padding: 0 30px; height: 54px; }
+        
+        .icon-btn { width: 54px; height: 54px; border-radius: 50%; border: none; background: #252545; color: white; font-size: 24px; cursor: pointer; transition: 0.2s; flex-shrink: 0; display: flex; justify-content: center; align-items: center; }
+        .icon-btn:hover { background: #3a3a5a; transform: scale(1.1); }
+
+        .emoji-picker { display: none; position: absolute; bottom: 85px; left: 20px; background: #252545; border: 4px solid #3a3a5a; border-radius: 20px; padding: 15px; width: 280px; flex-wrap: wrap; gap: 10px; max-height: 200px; overflow-y: auto; z-index: 100; }
+        .emoji-picker span { font-size: 28px; cursor: pointer; transition: 0.2s; user-select: none; }
+        .emoji-picker span:hover { transform: scale(1.3); }
+
+        /* МОДАЛЬНЕ ВІКНО КАНАЛУ */
+        #channel-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 15, 26, 0.9); z-index: 6000; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h1 style="color: #ff3366; margin-bottom: 20px;">PEDAB ULTIMATE V10.1</h1>
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="LOGIN_TAB">LOGIN</div>
+                <div class="auth-tab" id="tab-reg" onclick="setAuthMode('reg')" data-i18n="REG_TAB">REGISTER</div>
+            </div>
+            <div id="reg-fields" style="display: none;">
+                <input type="text" id="auth-nick" data-i18n-ph="NICK_PH" placeholder="Create nickname">
+            </div>
+            <input type="text" id="auth-id" data-i18n-ph="ID_PH" placeholder="Your ID">
+            <input type="password" id="auth-pass" data-i18n-ph="PASS_PH" placeholder="Password">
+            <button class="btn" id="auth-btn" onclick="handleAuth()" data-i18n="ENTER_BTN">ENTER</button>
+        </div>
+    </div>
+
+    <div id="channel-modal">
+        <div class="auth-box" id="channel-modal-content" style="width: 450px; padding: 30px;">
+            </div>
+    </div>
+
+    <div id="app-container">
+        <div class="sidebar">
+            <div style="padding: 25px; border-bottom: 4px solid #252545; display: flex; align-items: center; gap: 15px;">
+                <div id="my-avatar-slot"></div>
+                <div>
+                    <div id="my-nick-display" style="font-size: 20px; color: #ff3366;"></div>
+                    <div id="my-id-display" style="font-size: 12px; color: #888;"></div>
+                </div>
+                <button onclick="logout()" style="margin-left: auto; background: none; border: none; color: #ff3366; cursor: pointer; font-size: 24px;">🚪</button>
+            </div>
+            <div style="padding-top: 10px;">
+                <div class="nav-item active" onclick="setView('friends')"><div data-i18n="NAV_FRIENDS">👥 MY FRIENDS</div></div>
+                <div class="nav-item" onclick="setView('add-friends')"><div data-i18n="NAV_FIND_FRIEND">🔍 FIND FRIEND</div></div>
+                <div class="nav-item" onclick="setView('requests')"><div><span data-i18n="NAV_REQUESTS">📩 REQUESTS</span> (<span id="req-count">0</span>)</div></div>
+                <hr style="border: 1px solid #252545; margin: 10px;">
+                <div class="nav-item" onclick="setView('channels')">
+                    <div data-i18n="NAV_CHANNELS">📢 CHANNELS</div>
+                    <button class="plus-btn" onclick="event.stopPropagation(); setView('create-channel')">+</button>
+                </div>
+                <div class="nav-item" onclick="setView('find-channel')"><div data-i18n="NAV_FIND_CHANNEL">🔎 FIND CHANNEL</div></div>
+                <hr style="border: 1px solid #252545; margin: 10px;">
+                <div class="nav-item" onclick="setView('settings')"><div data-i18n="NAV_SETTINGS">⚙️ SETTINGS</div></div>
+            </div>
+        </div>
+
+        <div class="main-view">
+            <div class="view-header" id="view-title" data-i18n="CHOOSE_TAB">Select tab</div>
+            <div class="content-area" id="main-content"></div>
+            
+            <div class="chat-input-area" id="chat-input-box">
+                <div class="emoji-picker" id="emoji-picker"></div>
+                <input type="file" id="file-input" accept="image/*, video/*" style="display:none;" onchange="handleFileUpload(event)">
+                <button class="icon-btn" onclick="document.getElementById('file-input').click()">+</button>
+                <button class="icon-btn" onclick="toggleEmojiPicker()">😀</button>
+                <input type="text" id="msg-input" data-i18n-ph="MSG_PH" placeholder="Type a message...">
+                <button class="btn btn-send" onclick="sendMsg()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- СЛОВНИК ПЕРЕКЛАДІВ ---
+        const I18N = {
+            "English": {
+                LOGIN_TAB: "LOGIN", REG_TAB: "REGISTER", NICK_PH: "Create nickname", ID_PH: "Your ID", PASS_PH: "Password", ENTER_BTN: "ENTER", REG_BTN: "REGISTER",
+                NAV_FRIENDS: "👥 MY FRIENDS", NAV_FIND_FRIEND: "🔍 FIND FRIEND", NAV_REQUESTS: "📩 REQUESTS", NAV_CHANNELS: "📢 CHANNELS", NAV_FIND_CHANNEL: "🔎 FIND CHANNEL", NAV_SETTINGS: "⚙️ SETTINGS",
+                CHOOSE_TAB: "Select tab", MSG_PH: "Type a message...", SEND_REQ: "SEND REQUEST", ACCEPT: "ACCEPT", WRITE: "MESSAGE", OPEN: "OPEN",
+                CREATE: "CREATE", JOIN: "JOIN", SAVE: "SAVE SETTINGS", NO_MSGS: "No messages yet.", NO_FRIENDS: "Find friends by ID!", NO_REQS: "No new requests.", NO_CHANS: "You haven't added any channels.",
+                CHAN_NAME: "Channel Name", CHAN_ID: "Channel ID", CHAN_PASS: "Password (optional/if any)", 
+                LEAVE_CHAN: "Leave Channel", DEL_CHAN: "Delete Forever", CANCEL: "Cancel", SETTINGS_CHAN: "⚙️ Channel Settings",
+                S_NICK: "NICKNAME", S_PASS: "CHANGE PASSWORD", S_UPLOAD: "UPLOAD CUSTOM ICON (MAX 0.5 MB)", S_STD: "STANDARD ICONS", S_LANG: "INTERFACE LANGUAGE"
+            },
+            "Українська": {
+                LOGIN_TAB: "ВХІД", REG_TAB: "РЕЄСТРАЦІЯ", NICK_PH: "Видумай нікнейм", ID_PH: "Твій ID", PASS_PH: "Пароль", ENTER_BTN: "УВІЙТИ", REG_BTN: "ЗАРЕЄСТРУВАТИ",
+                NAV_FRIENDS: "👥 МОЇ ДРУЗІ", NAV_FIND_FRIEND: "🔍 ЗНАЙТИ ДРУГА", NAV_REQUESTS: "📩 ЗАПИТИ", NAV_CHANNELS: "📢 КАНАЛИ", NAV_FIND_CHANNEL: "🔎 ЗНАЙТИ КАНАЛ", NAV_SETTINGS: "⚙️ НАЛАШТУВАННЯ",
+                CHOOSE_TAB: "Оберіть вкладку", MSG_PH: "Введіть повідомлення...", SEND_REQ: "НАДІСЛАТИ ЗАПИТ", ACCEPT: "ПРИЙНЯТИ", WRITE: "НАПИСАТИ", OPEN: "ВІДКРИТИ",
+                CREATE: "СТВОРИТИ", JOIN: "ДОЛУЧИТИСЯ", SAVE: "ЗБЕРЕГТИ НАЛАШТУВАННЯ", NO_MSGS: "Повідомлень немає.", NO_FRIENDS: "Знайди друзів за ID!", NO_REQS: "Нових запитів немає.", NO_CHANS: "Ти ще не додав жодного каналу.",
+                CHAN_NAME: "Назва каналу", CHAN_ID: "ID каналу", CHAN_PASS: "Пароль (якщо є/необов'язково)", 
+                LEAVE_CHAN: "Покинути канал", DEL_CHAN: "Видалити назавжди", CANCEL: "Скасувати", SETTINGS_CHAN: "⚙️ Налаштування каналу",
+                S_NICK: "НІКНЕЙМ", S_PASS: "ЗМІНИТИ ПАРОЛЬ", S_UPLOAD: "ЗАВАНТАЖИТИ СВОЮ ІКОНКУ (МАКС 0.5 МБ)", S_STD: "СТАНДАРТНІ ІКОНКИ", S_LANG: "МОВА ІНТЕРФЕЙСУ"
+            },
+            "Español": {
+                LOGIN_TAB: "ACCESO", REG_TAB: "REGISTRO", NICK_PH: "Crear apodo", ID_PH: "Tu ID", PASS_PH: "Contraseña", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR",
+                NAV_FRIENDS: "👥 MIS AMIGOS", NAV_FIND_FRIEND: "🔍 BUSCAR AMIGO", NAV_REQUESTS: "📩 SOLICITUDES", NAV_CHANNELS: "📢 CANALES", NAV_FIND_CHANNEL: "🔎 BUSCAR CANAL", NAV_SETTINGS: "⚙️ AJUSTES",
+                CHOOSE_TAB: "Seleccionar pestaña", MSG_PH: "Escribe un mensaje...", SEND_REQ: "ENVIAR SOLICITUD", ACCEPT: "ACEPTAR", WRITE: "MENSAJE", OPEN: "ABRIR",
+                CREATE: "CREAR", JOIN: "UNIRSE", SAVE: "GUARDAR", NO_MSGS: "No hay mensajes.", NO_FRIENDS: "¡Busca amigos por ID!", NO_REQS: "Sin solicitudes.", NO_CHANS: "No has añadido canales.",
+                CHAN_NAME: "Nombre del canal", CHAN_ID: "ID del canal", CHAN_PASS: "Contraseña", 
+                LEAVE_CHAN: "Salir del canal", DEL_CHAN: "Eliminar para siempre", CANCEL: "Cancelar", SETTINGS_CHAN: "⚙️ Ajustes del canal",
+                S_NICK: "APODO", S_PASS: "CAMBIAR CONTRASEÑA", S_UPLOAD: "SUBIR ICONO (MÁX 0.5 MB)", S_STD: "ICONOS ESTÁNDAR", S_LANG: "IDIOMA"
+            },
+            "Português": {
+                LOGIN_TAB: "ENTRAR", REG_TAB: "REGISTRAR", NICK_PH: "Criar apelido", ID_PH: "Seu ID", PASS_PH: "Senha", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR",
+                NAV_FRIENDS: "👥 MEUS AMIGOS", NAV_FIND_FRIEND: "🔍 PROCURAR AMIGO", NAV_REQUESTS: "📩 PEDIDOS", NAV_CHANNELS: "📢 CANAIS", NAV_FIND_CHANNEL: "🔎 PROCURAR CANAL", NAV_SETTINGS: "⚙️ CONFIGURAÇÕES",
+                CHOOSE_TAB: "Selecionar aba", MSG_PH: "Digite uma mensagem...", SEND_REQ: "ENVIAR PEDIDO", ACCEPT: "ACEITAR", WRITE: "MENSAGEM", OPEN: "ABRIR",
+                CREATE: "CRIAR", JOIN: "ENTRAR", SAVE: "SALVAR", NO_MSGS: "Sem mensagens.", NO_FRIENDS: "Encontre amigos por ID!", NO_REQS: "Sem pedidos.", NO_CHANS: "Nenhum canal adicionado.",
+                CHAN_NAME: "Nome do canal", CHAN_ID: "ID do canal", CHAN_PASS: "Senha", 
+                LEAVE_CHAN: "Sair do canal", DEL_CHAN: "Excluir para sempre", CANCEL: "Cancelar", SETTINGS_CHAN: "⚙️ Configurações do canal",
+                S_NICK: "APELIDO", S_PASS: "MUDAR SENHA", S_UPLOAD: "ENVIAR ÍCONE (MÁX 0.5 MB)", S_STD: "ÍCONES PADRÃO", S_LANG: "IDIOMA"
+            },
+            "العربية": {
+                LOGIN_TAB: "دخول", REG_TAB: "تسجيل", NICK_PH: "أنشئ لقب", ID_PH: "المعرف الخاص بك", PASS_PH: "كلمة المرور", ENTER_BTN: "دخول", REG_BTN: "تسجيل",
+                NAV_FRIENDS: "👥 أصدقائي", NAV_FIND_FRIEND: "🔍 ابحث عن صديق", NAV_REQUESTS: "📩 الطلبات", NAV_CHANNELS: "📢 القنوات", NAV_FIND_CHANNEL: "🔎 ابحث عن قناة", NAV_SETTINGS: "⚙️ الإعدادات",
+                CHOOSE_TAB: "حدد علامة تبويب", MSG_PH: "اكتب رسالة...", SEND_REQ: "إرسال طلب", ACCEPT: "قبول", WRITE: "رسالة", OPEN: "فتح",
+                CREATE: "إنشاء", JOIN: "انضمام", SAVE: "حفظ الإعدادات", NO_MSGS: "لا توجد رسائل.", NO_FRIENDS: "ابحث عن أصدقاء بالمعرف!", NO_REQS: "لا طلبات.", NO_CHANS: "لم تقم بإضافة قنوات.",
+                CHAN_NAME: "اسم القناة", CHAN_ID: "معرف القناة", CHAN_PASS: "كلمة المرور", 
+                LEAVE_CHAN: "مغادرة القناة", DEL_CHAN: "حذف للأبد", CANCEL: "إلغاء", SETTINGS_CHAN: "⚙️ إعدادات القناة",
+                S_NICK: "اللقب", S_PASS: "تغيير كلمة المرور", S_UPLOAD: "رفع أيقونة (حد أقصى 0.5 ميجابايت)", S_STD: "الأيقونات القياسية", S_LANG: "لغة الواجهة"
+            },
+            "বাংলা": {
+                LOGIN_TAB: "লগইন", REG_TAB: "নিবন্ধন", NICK_PH: "ডাকনাম তৈরি করুন", ID_PH: "আপনার আইডি", PASS_PH: "পাসওয়ার্ড", ENTER_BTN: "প্রবেশ করুন", REG_BTN: "নিবন্ধন করুন",
+                NAV_FRIENDS: "👥 আমার বন্ধুরা", NAV_FIND_FRIEND: "🔍 বন্ধু খুঁজুন", NAV_REQUESTS: "📩 অনুরোধ", NAV_CHANNELS: "📢 চ্যানেল", NAV_FIND_CHANNEL: "🔎 চ্যানেল খুঁজুন", NAV_SETTINGS: "⚙️ সেটিংস",
+                CHOOSE_TAB: "ট্যাব নির্বাচন করুন", MSG_PH: "একটি বার্তা লিখুন...", SEND_REQ: "অনুরোধ পাঠান", ACCEPT: "গ্রহণ করুন", WRITE: "বার্তা", OPEN: "খুলুন",
+                CREATE: "তৈরি করুন", JOIN: "যোগ দিন", SAVE: "সেটিংস সংরক্ষণ করুন", NO_MSGS: "কোনো বার্তা নেই।", NO_FRIENDS: "আইডি দিয়ে বন্ধু খুঁজুন!", NO_REQS: "কোনো অনুরোধ নেই।", NO_CHANS: "কোনো চ্যানেল নেই।",
+                CHAN_NAME: "চ্যানেলের নাম", CHAN_ID: "চ্যানেল আইডি", CHAN_PASS: "পাসওয়ার্ড", 
+                LEAVE_CHAN: "চ্যানেল ছাড়ুন", DEL_CHAN: "চিরতরে মুছুন", CANCEL: "বাতিল", SETTINGS_CHAN: "⚙️ চ্যানেল সেটিংস",
+                S_NICK: "ডাকনাম", S_PASS: "পাসওয়ার্ড পরিবর্তন", S_UPLOAD: "আইকন আপলোড (সর্বোচ্চ ০.৫ এমবি)", S_STD: "স্ট্যান্ডার্ড আইকন", S_LANG: "ভাষা"
+            },
+            "हिन्दी / اردو": {
+                LOGIN_TAB: "लॉग इन / لاگ ان", REG_TAB: "रजिस्टर / رجسٹر", NICK_PH: "उपनाम / عرفی नाम", ID_PH: "आपकी आईडी / آپ کی آئی ڈی", PASS_PH: "पासवर्ड / پاس ورڈ", ENTER_BTN: "प्रवेश / داخل", REG_BTN: "रजिस्टर / رجسٹر",
+                NAV_FRIENDS: "👥 मेरे दोस्त", NAV_FIND_FRIEND: "🔍 दोस्त खोजें", NAV_REQUESTS: "📩 अनुरोध", NAV_CHANNELS: "📢 चैनल", NAV_FIND_CHANNEL: "🔎 चैनल खोजें", NAV_SETTINGS: "⚙️ सेटिंग्स",
+                CHOOSE_TAB: "टैब चुनें", MSG_PH: "संदेश लिखें...", SEND_REQ: "अनुरोध भेजें", ACCEPT: "स्वीकारें", WRITE: "संदेश", OPEN: "खोलें",
+                CREATE: "बनाएं", JOIN: "शामिल हों", SAVE: "सेव करें", NO_MSGS: "कोई संदेश नहीं.", NO_FRIENDS: "आईडी से दोस्त खोजें!", NO_REQS: "कोई अनुरोध नहीं.", NO_CHANS: "कोई चैनल नहीं.",
+                CHAN_NAME: "चैनल का नाम", CHAN_ID: "चैनल आईडी", CHAN_PASS: "पासवर्ड", 
+                LEAVE_CHAN: "चैनल छोड़ें", DEL_CHAN: "हमेशा के लिए हटाएं", CANCEL: "रद्द करें", SETTINGS_CHAN: "⚙️ चैनल सेटिंग्स",
+                S_NICK: "उपनाम", S_PASS: "पासवर्ड बदलें", S_UPLOAD: "आइकन अपलोड करें (0.5 MB)", S_STD: "मानक आइकन", S_LANG: "भाषा"
+            },
+            "日本語": {
+                LOGIN_TAB: "ログイン", REG_TAB: "登録", NICK_PH: "ニックネーム", ID_PH: "あなたのID", PASS_PH: "パスワード", ENTER_BTN: "入る", REG_BTN: "登録する",
+                NAV_FRIENDS: "👥 友達", NAV_FIND_FRIEND: "🔍 友達を探す", NAV_REQUESTS: "📩 リクエスト", NAV_CHANNELS: "📢 チャンネル", NAV_FIND_CHANNEL: "🔎 チャンネルを探す", NAV_SETTINGS: "⚙️ 設定",
+                CHOOSE_TAB: "タブを選択", MSG_PH: "メッセージを入力...", SEND_REQ: "リクエストを送信", ACCEPT: "承認", WRITE: "メッセージ", OPEN: "開く",
+                CREATE: "作成", JOIN: "参加する", SAVE: "保存する", NO_MSGS: "メッセージはありません。", NO_FRIENDS: "IDで友達を探そう！", NO_REQS: "リクエストはありません。", NO_CHANS: "チャンネルがありません。",
+                CHAN_NAME: "チャンネル名", CHAN_ID: "チャンネルID", CHAN_PASS: "パスワード", 
+                LEAVE_CHAN: "退出する", DEL_CHAN: "完全に削除", CANCEL: "キャンセル", SETTINGS_CHAN: "⚙️ チャンネル設定",
+                S_NICK: "ニックネーム", S_PASS: "パスワード変更", S_UPLOAD: "アイコンをアップロード (最大0.5MB)", S_STD: "標準アイコン", S_LANG: "言語"
+            },
+            "中文": {
+                LOGIN_TAB: "登录", REG_TAB: "注册", NICK_PH: "创建昵称", ID_PH: "你的ID", PASS_PH: "密码", ENTER_BTN: "进入", REG_BTN: "注册",
+                NAV_FRIENDS: "👥 我的朋友", NAV_FIND_FRIEND: "🔍 寻找朋友", NAV_REQUESTS: "📩 请求", NAV_CHANNELS: "📢 频道", NAV_FIND_CHANNEL: "🔎 寻找频道", NAV_SETTINGS: "⚙️ 设置",
+                CHOOSE_TAB: "选择标签", MSG_PH: "输入消息...", SEND_REQ: "发送请求", ACCEPT: "接受", WRITE: "发消息", OPEN: "打开",
+                CREATE: "创建", JOIN: "加入", SAVE: "保存设置", NO_MSGS: "暂无消息。", NO_FRIENDS: "通过ID寻找朋友！", NO_REQS: "暂无请求。", NO_CHANS: "你还没有添加任何频道。",
+                CHAN_NAME: "频道名称", CHAN_ID: "频道ID", CHAN_PASS: "密码", 
+                LEAVE_CHAN: "离开频道", DEL_CHAN: "永久删除", CANCEL: "取消", SETTINGS_CHAN: "⚙️ 频道设置",
+                S_NICK: "昵称", S_PASS: "修改密码", S_UPLOAD: "上传图标 (最大 0.5 MB)", S_STD: "标准图标", S_LANG: "语言"
+            }
+        };
+
+        function getText(key) {
+            const lang = (currentUser && currentUser.lang) ? currentUser.lang : "English";
+            return I18N[lang][key] || I18N["English"][key] || key;
+        }
+
+        function applyLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = getText(el.getAttribute('data-i18n')); });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = getText(el.getAttribute('data-i18n-ph')); });
+        }
+
+        // --- СИСТЕМА СПОВІЩЕНЬ ---
+        function showToast(text, type = 'green') {
+            const container = document.getElementById('toast-container'); const toast = document.createElement('div');
+            toast.className = `toast ${type}`; toast.innerText = text; container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // --- БАЗА ДАНИХ ТА СИНХРОНІЗАЦІЯ ---
+        let db = JSON.parse(localStorage.getItem('pedab_v10_1_db')) || { users: {}, nicks: {}, channels: {}, messages: {} };
+        let currentUser = null; let authMode = 'login'; let currentView = 'friends'; let activeChatId = null; let chatType = null; 
+
+        function saveDB() { localStorage.setItem('pedab_v10_1_db', JSON.stringify(db)); refreshUI(); }
+        window.addEventListener('storage', (e) => { if (e.key === 'pedab_v10_1_db') { db = JSON.parse(e.newValue); refreshUI(); } });
+
+        function refreshUI() {
+            if (!currentUser) { applyLanguage(); return; }
+            if(!db.users[currentUser.id].channels) db.users[currentUser.id].channels = [];
+            if(!db.users[currentUser.id].lang) db.users[currentUser.id].lang = "English";
+            
+            currentUser = db.users[currentUser.id];
+            applyLanguage();
+            updateProfileSidebar();
+            
+            if (currentView === 'chat' && activeChatId) renderChatRoom(activeChatId, chatType);
+            else setView(currentView);
+        }
+
+        // --- ІНІЦІАЛІЗАЦІЯ СМАЙЛІВ ---
+        const emojisList = ["😀","😂","🥰","😎","🤔","😭","😡","👍","👎","❤️","🔥","✨","🎉","👋","👀","🤡","💀","👽","💩","🎮","💻","🚀"];
+        function initEmojis() { document.getElementById('emoji-picker').innerHTML = emojisList.map(e => `<span onclick="addEmoji('${e}')">${e}</span>`).join(''); }
+        initEmojis();
+        function toggleEmojiPicker() { const p = document.getElementById('emoji-picker'); p.style.display = (p.style.display === 'flex') ? 'none' : 'flex'; }
+        function addEmoji(emoji) { const i = document.getElementById('msg-input'); i.value += emoji; document.getElementById('emoji-picker').style.display = 'none'; i.focus(); }
+
+        // --- МЕДІА (з лімітом 0.5 МБ) ---
+        function handleFileUpload(event) {
+            const file = event.target.files[0]; if (!file || !activeChatId) return;
+            if (file.size > 500000) { showToast("Файл завеликий! Макс 0.5 МБ", "yellow"); event.target.value = ''; return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const roomId = chatType === 'channel' ? 'chan_' + activeChatId : getChatRoomId(currentUser.id, activeChatId);
+                if (!db.messages[roomId]) db.messages[roomId] = [];
+                db.messages[roomId].push({ from: currentUser.id, text: e.target.result, type: file.type.startsWith('video/') ? 'video' : 'image' });
+                try { saveDB(); } catch(error) { showToast("Помилка бази даних! Файл не збережено.", "red"); }
+            }; reader.readAsDataURL(file); event.target.value = '';
+        }
+
+        // --- АВТОРИЗАЦІЯ ---
+        function setAuthMode(mode) {
+            authMode = mode; document.getElementById('tab-login').classList.toggle('active', mode === 'login'); document.getElementById('tab-reg').classList.toggle('active', mode === 'reg'); document.getElementById('reg-fields').style.display = mode === 'reg' ? 'block' : 'none'; 
+            document.getElementById('auth-btn').innerText = mode === 'reg' ? getText('REG_BTN') : getText('ENTER_BTN');
+        }
+        function handleAuth() {
+            const nick = document.getElementById('auth-nick').value.trim(); const id = document.getElementById('auth-id').value.trim(); const pass = document.getElementById('auth-pass').value.trim();
+            if (authMode === 'reg') {
+                if (!nick || !id || !pass) return showToast(getText('CHAN_NAME') ? "Заповни всі поля!" : "Fill all fields!", "red");
+                if (db.nicks[nick]) return showToast("Цей нік уже зайнятий!", "red");
+                if (db.users[id]) return showToast("Цей ID уже існує!", "red");
+                db.users[id] = { nick, pass, icon: "", friends: [], requests: [], channels: [], lang: "English" }; db.nicks[nick] = id; saveDB(); loginSuccess(id);
+            } else {
+                if (db.users[id] && db.users[id].pass === pass) loginSuccess(id); else showToast("Невірний ID або пароль!", "red");
+            }
+        }
+        function loginSuccess(id) {
+            currentUser = db.users[id]; currentUser.id = id;
+            if(!currentUser.channels) currentUser.channels = []; if(!currentUser.lang) currentUser.lang = "English";
+            document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex';
+            applyLanguage(); updateProfileSidebar(); setView('friends');
+        }
+        function logout() { location.reload(); }
+
+        function getAvatarHTML(name, iconSrc, isFriend) {
+            const letter = name ? name.charAt(0).toUpperCase() : '?';
+            if (iconSrc && iconSrc !== "") return `<img src="${iconSrc}" class="avatar" onerror="this.onerror=null; this.outerHTML='<div class=\\'avatar error-avatar\\'>?</div>'">`;
+            return `<div class="avatar ${isFriend ? 'friend-avatar' : 'stranger-avatar'}">${letter}</div>`;
+        }
+        function updateProfileSidebar() {
+            document.getElementById('my-nick-display').innerText = currentUser.nick; document.getElementById('my-id-display').innerText = "ID: " + currentUser.id;
+            document.getElementById('my-avatar-slot').innerHTML = getAvatarHTML(currentUser.nick, currentUser.icon, true); document.getElementById('req-count').innerText = currentUser.requests.length;
+        }
+
+        // --- ЛОГІКА ВКЛАДОК ТА КАНАЛІВ ---
+        function setView(view) {
+            currentView = view; activeChatId = null; chatType = null;
+            const content = document.getElementById('main-content'); const title = document.getElementById('view-title');
+            document.getElementById('chat-input-box').style.display = 'none'; document.getElementById('emoji-picker').style.display = 'none';
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            if (view === 'friends') {
+                title.innerHTML = getText('NAV_FRIENDS');
+                content.innerHTML = currentUser.friends.length ? "" : `<div style='color:#888; text-align:center;'>${getText('NO_FRIENDS')}</div>`;
+                currentUser.friends.forEach(fId => { const friend = db.users[fId]; content.innerHTML += `<div class="user-row">${getAvatarHTML(friend.nick, friend.icon, true)}<div>${friend.nick} <br><small style="color:#888;">ID: ${fId}</small></div><button class="action-btn" onclick="openChat('${fId}', 'friend')">${getText('WRITE')}</button></div>`; });
+            } else if (view === 'add-friends') {
+                title.innerHTML = getText('NAV_FIND_FRIEND');
+                content.innerHTML = `<div style="background: #252545; padding: 20px; border-radius: 20px;"><input type="text" id="search-id" placeholder="ID"><button class="btn" onclick="sendFriendRequest()">${getText('SEND_REQ')}</button></div>`;
+            } else if (view === 'requests') {
+                title.innerHTML = getText('NAV_REQUESTS');
+                content.innerHTML = currentUser.requests.length ? "" : `<div style='color:#888; text-align:center;'>${getText('NO_REQS')}</div>`;
+                currentUser.requests.forEach(rId => { const sender = db.users[rId]; content.innerHTML += `<div class="user-row">${getAvatarHTML(sender.nick, sender.icon, false)}<div>${sender.nick}</div><button class="action-btn" onclick="acceptFriend('${rId}')">${getText('ACCEPT')}</button></div>`; });
+            } else if (view === 'channels') {
+                title.innerHTML = getText('NAV_CHANNELS');
+                const validChannels = currentUser.channels.filter(id => db.channels[id]);
+                if (validChannels.length !== currentUser.channels.length) { currentUser.channels = validChannels; saveDB(); }
+                content.innerHTML = currentUser.channels.length ? "" : `<div style='color:#888; text-align:center;'>${getText('NO_CHANS')}</div>`;
+                currentUser.channels.forEach(cId => { 
+                    const chan = db.channels[cId]; 
+                    if(chan) content.innerHTML += `<div class="user-row">${getAvatarHTML(chan.name, chan.icon, false)}<div>${chan.name} <br><small style="color:#888;">ID: ${cId}</small></div><button class="action-btn" onclick="openChat('${cId}', 'channel')">${getText('OPEN')}</button></div>`; 
+                });
+            } else if (view === 'create-channel') {
+                title.innerHTML = getText('CREATE') + " (📢)";
+                content.innerHTML = `<div style="background: #252545; padding: 20px; border-radius: 20px;"><input type="text" id="new-chan-name" placeholder="${getText('CHAN_NAME')}"><input type="text" id="new-chan-id" placeholder="${getText('CHAN_ID')}"><input type="password" id="new-chan-pass" placeholder="${getText('CHAN_PASS')}"><button class="btn" onclick="createChannel()">${getText('CREATE')}</button></div>`;
+            } else if (view === 'find-channel') {
+                title.innerHTML = getText('NAV_FIND_CHANNEL');
+                content.innerHTML = `<div style="background: #252545; padding: 20px; border-radius: 20px;"><input type="text" id="find-chan-id" placeholder="${getText('CHAN_ID')}"><input type="password" id="find-chan-pass" placeholder="${getText('CHAN_PASS')}"><button class="btn" onclick="joinChannel()">${getText('JOIN')}</button></div>`;
+            } else if (view === 'settings') {
+                title.innerHTML = getText('NAV_SETTINGS');
+                content.innerHTML = `
+                    <div style="max-width: 500px; background: #252545; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px;">
+                        <div><label style="color:#888; font-size:14px;">${getText('S_NICK')}</label><input type="text" id="set-nick" value="${currentUser.nick}"></div>
+                        <div><label style="color:#888; font-size:14px;">${getText('S_PASS')}</label><input type="password" id="set-pass" value="${currentUser.pass}"></div>
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 12px; border: 2px solid #3a3a5a;">
+                            <label style="color:#ff3366; font-size:14px; margin-bottom:10px; display:block;">${getText('S_UPLOAD')}</label>
+                            <input type="file" id="custom-icon-upload" accept="image/*" style="border:none; padding:0;">
+                        </div>
+                        <div><label style="color:#888; font-size:14px;">${getText('S_STD')}</label>
+                        <select id="set-icon">
+                            <option value="" ${currentUser.icon==="" ? "selected":""}>Без іконки / Без змін</option>
+                            <option value="file:///C:/Pedab/users.icons/cosmic-alien.rb.png" ${currentUser.icon.includes('alien') ? "selected":""}>Cosmic Alien</option>
+                            <option value="file:///C:/Pedab/users.icons/cosmic-fallstar.rb.png" ${currentUser.icon.includes('fallstar') ? "selected":""}>Cosmic Fallstar</option>
+                            <option value="file:///C:/Pedab/users.icons/gamer-gameboysp.rb.png" ${currentUser.icon.includes('gameboysp') ? "selected":""}>Gamer Gameboy</option>
+                            <option value="file:///C:/Pedab/users.icons/gamer-ps2.rb.png" ${currentUser.icon.includes('ps2') ? "selected":""}>Gamer PS2</option>
+                            <option value="file:///C:/Pedab/users.icons/nauk-robot.rb.png" ${currentUser.icon.includes('robot') ? "selected":""}>Nauk Robot</option>
+                            <option value="file:///C:/Pedab/users.icons/nauk-X-Ray.rb.png" ${currentUser.icon.includes('X-Ray') ? "selected":""}>Nauk X-Ray</option>
+                        </select></div>
+                        <div><label style="color:#888; font-size:14px;">${getText('S_LANG')}</label>
+                        <select id="set-lang">
+                            <option value="English" ${currentUser.lang==="English"?"selected":""}>English</option>
+                            <option value="Español" ${currentUser.lang==="Español"?"selected":""}>Español</option>
+                            <option value="Português" ${currentUser.lang==="Português"?"selected":""}>Português</option>
+                            <option value="Українська" ${currentUser.lang==="Українська"?"selected":""}>Українська</option>
+                            <option value="العربية" ${currentUser.lang==="العربية"?"selected":""}>العربية</option>
+                            <option value="বাংলা" ${currentUser.lang==="বাংলা"?"selected":""}>বাংলা</option>
+                            <option value="हिन्दी / اردو" ${currentUser.lang==="हिन्दी / اردو"?"selected":""}>हिन्दी / اردو</option>
+                            <option value="日本語" ${currentUser.lang==="日本語"?"selected":""}>日本語</option>
+                            <option value="中文" ${currentUser.lang==="中文"?"selected":""}>中文</option>
+                        </select></div>
+                        <button class="btn" onclick="saveSettings()">${getText('SAVE')}</button>
+                    </div>`;
+            }
+        }
+
+        // Логіка Друзів та Каналів (Базова)
+        function sendFriendRequest() { const targetId = document.getElementById('search-id').value.trim(); if (!targetId || targetId === currentUser.id) return showToast("Невірний ID!", "red"); if (!db.users[targetId]) return showToast("ID не знайдено!", "red"); if (db.users[targetId].requests.includes(currentUser.id)) return; if (currentUser.friends.includes(targetId)) return; db.users[targetId].requests.push(currentUser.id); saveDB(); showToast("Запит надіслано!", "green"); document.getElementById('search-id').value = ""; }
+        function acceptFriend(senderId) { currentUser.friends.push(senderId); db.users[senderId].friends.push(currentUser.id); currentUser.requests = currentUser.requests.filter(id => id !== senderId); saveDB(); showToast("Запит прийнято!", "green"); }
+        function createChannel() { const name = document.getElementById('new-chan-name').value.trim(); const id = document.getElementById('new-chan-id').value.trim(); const pass = document.getElementById('new-chan-pass').value.trim(); if(!name || !id) return showToast("Введіть назву та ID!", "red"); if(db.channels[id]) return showToast("Канал з таким ID вже існує!", "red"); db.channels[id] = { name, pass, icon: "", owner: currentUser.id }; currentUser.channels.push(id); saveDB(); showToast("Канал створено!", "green"); setView('channels'); }
+        function joinChannel() { const id = document.getElementById('find-chan-id').value.trim(); const pass = document.getElementById('find-chan-pass').value.trim(); if(!id) return; if(!db.channels[id]) return showToast("Канал не знайдено!", "red"); if(db.channels[id].pass !== "" && db.channels[id].pass !== pass) return showToast("Невірний пароль каналу!", "red"); if(currentUser.channels.includes(id)) return; currentUser.channels.push(id); saveDB(); showToast("Долучено!", "green"); setView('channels'); }
+
+        // --- МОДАЛЬНЕ ВІКНО НАЛАШТУВАННЯ КАНАЛУ ---
+        function openChannelOptions(chanId) {
+            const chan = db.channels[chanId]; if (!chan) return;
+            const modal = document.getElementById('channel-modal');
+            const content = document.getElementById('channel-modal-content');
+            
+            let html = `<h3 style="margin-bottom: 20px; color: white;">${getText('SETTINGS_CHAN')}</h3>`;
+            
+            if (chan.owner === currentUser.id) {
+                html += `
+                    <input type="text" id="edit-chan-name" value="${chan.name}" placeholder="${getText('CHAN_NAME')}">
+                    <input type="password" id="edit-chan-pass" value="${chan.pass}" placeholder="${getText('CHAN_PASS')}">
+                    <div style="background: #1a1a2e; padding: 10px; border-radius: 12px; margin: 10px 0; border: 2px solid #3a3a5a;">
+                        <label style="color:#ff3366; font-size:12px;">${getText('S_UPLOAD')}</label>
+                        <input type="file" id="edit-chan-icon-file" accept="image/*" style="border:none; padding:0;">
+                    </div>
+                    <select id="edit-chan-icon-std">
+                        <option value="">Без іконки / Без змін</option>
+                        <option value="file:///C:/Pedab/users.icons/cosmic-alien.rb.png">Cosmic Alien</option>
+                        <option value="file:///C:/Pedab/users.icons/cosmic-fallstar.rb.png">Cosmic Fallstar</option>
+                        <option value="file:///C:/Pedab/users.icons/gamer-gameboysp.rb.png">Gamer Gameboy</option>
+                        <option value="file:///C:/Pedab/users.icons/gamer-ps2.rb.png">Gamer PS2</option>
+                        <option value="file:///C:/Pedab/users.icons/nauk-robot.rb.png">Nauk Robot</option>
+                        <option value="file:///C:/Pedab/users.icons/nauk-X-Ray.rb.png">Nauk X-Ray</option>
+                    </select>
+                    <button class="btn" style="background-color: #28a745;" onclick="saveChannelSettings('${chanId}')">${getText('SAVE')}</button>
+                    <button class="btn" style="background-color: #dc3545;" onclick="deleteChannel()">${getText('DEL_CHAN')}</button>
+                `;
+            } else {
+                html += `<button class="btn" style="background-color: #ffc107; color: #000;" onclick="leaveChannel()">${getText('LEAVE_CHAN')}</button>`;
+            }
+            html += `<button class="btn" style="background-color: #3a3a5a; margin-top: 15px;" onclick="closeChannelOptions()">${getText('CANCEL')}</button>`;
+            
+            content.innerHTML = html; modal.style.display = 'flex';
+        }
+
+        function closeChannelOptions() { document.getElementById('channel-modal').style.display = 'none'; }
+        function leaveChannel() { if (!activeChatId || chatType !== 'channel') return; currentUser.channels = currentUser.channels.filter(id => id !== activeChatId); saveDB(); closeChannelOptions(); setView('channels'); }
+        function deleteChannel() { if (!activeChatId || chatType !== 'channel') return; const chanId = activeChatId; for (let userId in db.users) { db.users[userId].channels = db.users[userId].channels.filter(id => id !== chanId); } delete db.messages['chan_' + chanId]; delete db.channels[chanId]; saveDB(); closeChannelOptions(); setView('channels'); }
+        
+        function saveChannelSettings(chanId) {
+            const chan = db.channels[chanId];
+            chan.name = document.getElementById('edit-chan-name').value.trim() || chan.name;
+            chan.pass = document.getElementById('edit-chan-pass').value;
+            const stdIcon = document.getElementById('edit-chan-icon-std').value;
+            const fileInput = document.getElementById('edit-chan-icon-file');
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.size > 500000) return showToast("Файл завеликий!", "yellow");
+                const reader = new FileReader();
+                reader.onload = function(e) { chan.icon = e.target.result; saveDB(); closeChannelOptions(); renderChatRoom(chanId, 'channel'); };
+                reader.readAsDataURL(file);
+            } else {
+                if (stdIcon !== "") chan.icon = stdIcon;
+                saveDB(); closeChannelOptions(); renderChatRoom(chanId, 'channel');
+            }
+        }
+
+        // --- ЗБЕРЕЖЕННЯ ОСНОВНИХ НАЛАШТУВАНЬ ---
+        function saveSettings() {
+            const newNick = document.getElementById('set-nick').value.trim();
+            if(newNick && newNick !== currentUser.nick && db.nicks[newNick]) return showToast("Цей нік уже зайнятий!", "red");
+            if(newNick && newNick !== currentUser.nick) { delete db.nicks[currentUser.nick]; db.nicks[newNick] = currentUser.id; currentUser.nick = newNick; }
+            currentUser.pass = document.getElementById('set-pass').value;
+            currentUser.lang = document.getElementById('set-lang').value;
+            
+            const stdIcon = document.getElementById('set-icon').value; const fileInput = document.getElementById('custom-icon-upload');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0]; if (file.size > 500000) return showToast("Файл завеликий!", "yellow");
+                const reader = new FileReader(); reader.onload = function(e) { currentUser.icon = e.target.result; finishSave(); }; reader.readAsDataURL(file);
+            } else {
+                if(stdIcon !== "") currentUser.icon = stdIcon; finishSave();
+            }
+        }
+        function finishSave() {
+            saveDB(); const btns = document.querySelectorAll('#main-content .btn');
+            if(btns.length > 0) { const saveBtn = btns[btns.length - 1]; const oText = saveBtn.innerText; saveBtn.innerText = "✓"; saveBtn.style.backgroundColor = "#28a745"; setTimeout(() => { saveBtn.innerText = oText; saveBtn.style.backgroundColor = "#ff3366"; }, 2000); }
+        }
+
+        // --- ЧАТ ---
+        function getChatRoomId(id1, id2) { return [id1, id2].sort().join('_'); }
+        function openChat(targetId, type) { currentView = 'chat'; activeChatId = targetId; chatType = type; document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); renderChatRoom(targetId, type); }
+
+        function renderChatRoom(targetId, type) {
+            const content = document.getElementById('main-content'); content.innerHTML = ""; let roomId, msgs;
+            if (type === 'friend') {
+                const friend = db.users[targetId];
+                document.getElementById('view-title').innerHTML = `<button onclick="setView('friends')" style="background:none; border:none; color:#ff3366; cursor:pointer; font-size:24px; margin-right:10px;">⬅</button> ${getAvatarHTML(friend.nick, friend.icon, true)} ${friend.nick}`;
+                roomId = getChatRoomId(currentUser.id, targetId);
+            } else {
+                const chan = db.channels[targetId];
+                if (!chan) { currentUser.channels = currentUser.channels.filter(id => id !== targetId); saveDB(); setView('channels'); return; }
+                document.getElementById('view-title').innerHTML = `<button onclick="setView('channels')" style="background:none; border:none; color:#ff3366; cursor:pointer; font-size:24px; margin-right:10px;">⬅</button> ${getAvatarHTML(chan.name, chan.icon, false)} ${chan.name} <button class="icon-btn" style="margin-left:auto; width:45px; height:45px; font-size:20px;" onclick="openChannelOptions('${targetId}')">⚙️</button>`;
+                roomId = 'chan_' + targetId;
+            }
+            document.getElementById('chat-input-box').style.display = 'flex'; msgs = db.messages[roomId] || [];
+            if (msgs.length === 0) content.innerHTML = `<div style='color:#888; text-align:center; margin-top:auto; margin-bottom:auto;'>${getText('NO_MSGS')}</div>`;
+            else {
+                msgs.forEach(msg => {
+                    const isMe = msg.from === currentUser.id; let displayContent = msg.text;
+                    if (msg.type === 'image') displayContent = `<img src="${msg.text}" class="media-content">`; else if (msg.type === 'video') displayContent = `<video src="${msg.text}" controls class="media-content"></video>`;
+                    let senderInfo = ""; if (type === 'channel') senderInfo = `<div class="sender-id">ID: ${msg.from}</div>`;
+                    content.innerHTML += `<div class="message-wrap ${isMe ? 'sent' : 'received'}">${senderInfo}<div class="message">${displayContent}</div></div>`;
+                });
+            }
+            content.scrollTop = content.scrollHeight; 
+        }
+
+        function sendMsg() {
+            if (!activeChatId) return;
+            const input = document.getElementById('msg-input'); const text = input.value.trim(); if (text === "") return;
+            const roomId = chatType === 'channel' ? 'chan_' + activeChatId : getChatRoomId(currentUser.id, activeChatId);
+            if (!db.messages[roomId]) db.messages[roomId] = [];
+            db.messages[roomId].push({ from: currentUser.id, text: text, type: 'text' });
+            saveDB(); input.value = ""; document.getElementById('emoji-picker').style.display = 'none';
+        }
+        document.getElementById('msg-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMsg(); });
+        
+        // Запуск перекладу при завантаженні (Англійська за замовчуванням)
+        applyLanguage();
+    </script>
+</body>
+</html>
