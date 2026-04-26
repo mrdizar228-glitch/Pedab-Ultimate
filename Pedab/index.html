@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedab Ultimate V12</title>
+    <title>Pedab Ultimate V12.1</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap');
 
@@ -13,19 +13,26 @@
         body { background-color: #0f0f1a; color: #ffffff; height: 100vh; width: 100vw; overflow: hidden; display: flex; transition: 0.3s; }
         
         body.light-theme { background-color: #f4f4f9; color: #111; }
-        body.light-theme .sidebar { background-color: #ffffff; border-right: 4px solid #ddd; }
+        body.light-theme .sidebar { background-color: #ffffff; border-right: 4px solid #ddd; color: #111; }
         body.light-theme .view-header { background-color: #eaeaea; border-bottom: 4px solid #ccc; color: #333; }
-        body.light-theme .content-area { background-color: #f4f4f9; }
-        body.light-theme .user-row { background-color: #fff; border: 1px solid #ddd; color: #333; }
+        body.light-theme .content-area { background-color: #f4f4f9; color: #111; }
+        body.light-theme .user-row { background-color: #fff; border: 1px solid #ddd; color: #111; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body.light-theme .user-row div { color: #111; }
+        body.light-theme .user-row small { color: #666 !important; }
         body.light-theme .chat-input-area { background-color: #eaeaea; border-top: 4px solid #ccc; }
-        body.light-theme input, body.light-theme select { background-color: #fff; color: #333; border-color: #aaa; }
+        body.light-theme input, body.light-theme select { background-color: #fff; color: #333; border: 2px solid #aaa; }
+        body.light-theme .nav-item { color: #333; }
         body.light-theme .nav-item:hover, body.light-theme .nav-item.active { background-color: #eaeaea; color: #ff3366; }
-        body.light-theme .message-wrap.received .message { background-color: #fff; color: #333; border: 1px solid #ddd; }
-        body.light-theme .auth-box { background-color: #fff; border: 5px solid #ff3366; color: #333; }
+        body.light-theme .message { color: #111; }
+        body.light-theme .message-wrap.received .message { background-color: #fff; border: 1px solid #ddd; }
+        body.light-theme .message-wrap.sent .message { background-color: #ff3366; color: white; }
+        body.light-theme .auth-box { background-color: #fff; border: 5px solid #ff3366; color: #111; }
         body.light-theme .auth-tab { background-color: #eaeaea; color: #333;}
         body.light-theme .auth-tab.active { background-color: #ff3366; color: #fff;}
-        body.light-theme #channel-modal .auth-box { background-color: #fff; }
-        body.light-theme h3, body.light-theme label { color: #333 !important; }
+        body.light-theme #channel-modal .auth-box, body.light-theme #call-modal .auth-box { background-color: #fff; }
+        body.light-theme h3, body.light-theme h2, body.light-theme label { color: #111 !important; }
+        body.light-theme #my-nick-display { color: #ff3366 !important; }
+        body.light-theme #my-id-display { color: #666 !important; }
 
         /* --- ЗАВАНТАЖЕННЯ --- */
         #loading-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0f0f1a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -95,12 +102,12 @@
 </head>
 <body>
 
-    <div id="loading-screen"><div class="spinner"></div><h2 style="color: #ff3366;">Connecting to Pedab V12...</h2></div>
+    <div id="loading-screen"><div class="spinner"></div><h2 style="color: #ff3366;">Connecting to Pedab V12.1...</h2></div>
     <div id="toast-container"></div>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color: #ff3366; margin-bottom: 20px;">PEDAB V12 ULTIMATE</h1>
+            <h1 style="color: #ff3366; margin-bottom: 20px;">PEDAB V12.1 ULTIMATE</h1>
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="LOGIN_TAB">LOGIN</div>
                 <div class="auth-tab" id="tab-reg" onclick="setAuthMode('reg')" data-i18n="REG_TAB">REGISTER</div>
@@ -117,13 +124,23 @@
     <div id="channel-modal" class="modal-bg"><div class="auth-box" id="channel-modal-content" style="width: 450px; padding: 30px;"></div></div>
     
     <div id="call-modal" class="modal-bg">
-        <div class="auth-box" style="width: 350px;">
-            <h2 id="call-title" style="color: white; margin-bottom: 20px;">Incoming Call...</h2>
-            <div id="call-buttons" style="display:flex; gap:10px;">
-                <button class="btn" style="background: #28a745;" onclick="acceptCall()">📞 Accept</button>
-                <button class="btn" style="background: #dc3545;" onclick="rejectCall()">✖ Reject</button>
+        <div class="auth-box" style="width: 400px; padding: 25px;">
+            <h2 id="call-title" style="color: white; margin-bottom: 15px;">Incoming Call...</h2>
+            
+            <div id="local-video-container" style="display:none; width:100%; height:200px; background:#000; border-radius:15px; margin-bottom:15px; overflow:hidden; border: 3px solid #ff3366;">
+                <video id="local-video" autoplay muted style="width:100%; height:100%; object-fit:cover;"></video>
             </div>
-            <button id="end-call-btn" class="btn" style="background: #dc3545; display:none;" onclick="endCall()">End Call</button>
+
+            <div id="call-buttons" style="display:flex; gap:10px; justify-content:center;">
+                <button class="btn" style="background: #28a745; width:auto; padding:10px 25px;" onclick="acceptCall()">📞 Accept</button>
+                <button class="btn" style="background: #dc3545; width:auto; padding:10px 25px;" onclick="rejectCall()">✖ Reject</button>
+            </div>
+            
+            <div id="active-call-controls" style="display:none; gap:15px; justify-content:center; margin-top:10px;">
+                <button id="btn-mic" class="icon-btn" style="background: #3a3a5a;" onclick="toggleMic()">🎤</button>
+                <button id="btn-cam" class="icon-btn" style="background: #3a3a5a;" onclick="toggleCam()">📹</button>
+                <button class="icon-btn" style="background: #dc3545;" onclick="endCall()">✖</button>
+            </div>
         </div>
     </div>
 
@@ -257,9 +274,11 @@
                     document.getElementById('call-modal').style.display = 'flex';
                     document.getElementById('call-title').innerText = `Call from ${callInfo.from}...`;
                     document.getElementById('call-buttons').style.display = 'flex';
-                    document.getElementById('end-call-btn').style.display = 'none';
+                    document.getElementById('active-call-controls').style.display = 'none';
+                    document.getElementById('local-video-container').style.display = 'none';
                     myCallStatus = callInfo.from;
                 } else if (!callInfo) {
+                    stopLocalMedia();
                     document.getElementById('call-modal').style.display = 'none';
                     myCallStatus = null;
                 }
@@ -273,26 +292,69 @@
             saveDB();
         }
 
+        // --- КЕРУВАННЯ МЕДІА (КАМЕРА ТА МІКРОФОН) ---
+        let localStream = null;
+        let isMicOn = true;
+        let isCamOn = true;
+
+        async function startLocalMedia() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('local-video').srcObject = localStream;
+                document.getElementById('local-video-container').style.display = 'block';
+                isMicOn = true; isCamOn = true;
+                document.getElementById('btn-mic').style.background = "#3a3a5a";
+                document.getElementById('btn-cam').style.background = "#3a3a5a";
+            } catch (e) {
+                showToast("Немає доступу до камери/мікрофона", "yellow");
+            }
+        }
+
+        function stopLocalMedia() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            document.getElementById('local-video-container').style.display = 'none';
+        }
+
+        function toggleMic() {
+            if(localStream) {
+                isMicOn = !isMicOn;
+                localStream.getAudioTracks()[0].enabled = isMicOn;
+                document.getElementById('btn-mic').style.background = isMicOn ? "#3a3a5a" : "#dc3545";
+            }
+        }
+
+        function toggleCam() {
+            if(localStream) {
+                isCamOn = !isCamOn;
+                localStream.getVideoTracks()[0].enabled = isCamOn;
+                document.getElementById('btn-cam').style.background = isCamOn ? "#3a3a5a" : "#dc3545";
+            }
+        }
+
         // --- ДЗВІНКИ (Signaling) ---
         function startCall(targetId) {
             fdb.ref('status/' + targetId).once('value', snap => {
                 if(!snap.val()) {
-                    // Користувач офлайн - шлемо СМС через бота
                     sendBotMessage(targetId, `${currentUser.id}: calling`);
-                    showToast("User is offline. SMS sent.", "yellow");
+                    showToast("Користувач офлайн. СМС надіслано.", "yellow");
                 } else {
                     fdb.ref('calls/' + targetId).set({ from: currentUser.id, status: 'calling' });
                     document.getElementById('call-modal').style.display = 'flex';
                     document.getElementById('call-title').innerText = `Calling ${targetId}...`;
                     document.getElementById('call-buttons').style.display = 'none';
-                    document.getElementById('end-call-btn').style.display = 'block';
+                    document.getElementById('active-call-controls').style.display = 'flex';
                     myCallStatus = targetId;
                     
-                    // Слухаємо відповідь
+                    startLocalMedia(); // Вмикаємо свою камеру
+
                     fdb.ref('calls/' + targetId).on('value', ansSnap => {
                         if(ansSnap.val() && ansSnap.val().status === 'accepted') {
                             document.getElementById('call-title').innerText = `In Call with ${targetId}`;
                         } else if (!ansSnap.val()) {
+                            stopLocalMedia();
                             document.getElementById('call-modal').style.display = 'none';
                             myCallStatus = null;
                         }
@@ -306,7 +368,8 @@
                 fdb.ref('calls/' + currentUser.id).update({ status: 'accepted' });
                 document.getElementById('call-title').innerText = `In Call with ${myCallStatus}`;
                 document.getElementById('call-buttons').style.display = 'none';
-                document.getElementById('end-call-btn').style.display = 'block';
+                document.getElementById('active-call-controls').style.display = 'flex';
+                startLocalMedia(); // Вмикаємо свою камеру при прийнятті
             }
         }
 
@@ -316,6 +379,7 @@
                 fdb.ref('calls/' + myCallStatus).remove();
                 fdb.ref('calls/' + currentUser.id).remove();
             }
+            stopLocalMedia();
             document.getElementById('call-modal').style.display = 'none';
         }
 
@@ -377,10 +441,32 @@
                 title.innerHTML = getText('NAV_FRIENDS');
                 content.innerHTML = `<div class="user-row">${getAvatarHTML('pedab_bot', '', false)}<div>👾Pedab System Bot <br><small style="color:#888;">ID: pedab_bot</small></div><button class="action-btn" onclick="openChat('pedab_bot', 'friend')">${getText('WRITE')}</button></div>`;
                 currentUser.friends.forEach(fId => { const friend = db.users[fId]; content.innerHTML += `<div class="user-row">${getAvatarHTML(friend.nick, friend.icon, true)}<div>${friend.nick} <br><small style="color:#888;">ID: ${fId}</small></div><button class="action-btn" onclick="openChat('${fId}', 'friend')">${getText('WRITE')}</button></div>`; });
-            } else if (view === 'settings') {
+            } 
+            else if (view === 'requests') { 
+                title.innerHTML = getText('NAV_REQUESTS'); 
+                content.innerHTML = ""; // ОЧИЩАЄМО
+                if(currentUser.requests.length === 0) {
+                    content.innerHTML = `<div style='color:#21213D; text-align:center; font-weight:900; font-size:18px; margin-top:20px; text-transform:uppercase;'>НЕМАЄ ЗАПИТІВ НА ДРУЖБУ</div>`;
+                } else {
+                    currentUser.requests.forEach(rId => { 
+                        const sender = db.users[rId]; 
+                        content.innerHTML += `<div class="user-row">${getAvatarHTML(sender.nick, sender.icon, false)}<div>${sender.nick} <br><small style="color:#888;">ID: ${rId}</small></div><button class="action-btn" style="background:#28a745;" onclick="acceptFriend('${rId}')">${getText('ACCEPT')}</button></div>`; 
+                    }); 
+                }
+            }
+            else if (view === 'channels') { 
+                title.innerHTML = getText('NAV_CHANNELS'); 
+                content.innerHTML = ""; // ВИПРАВЛЕННЯ БАГУ ДУБЛЮВАННЯ!
+                if(currentUser.channels.length === 0) content.innerHTML = `<div style='color:#888; text-align:center;'>${getText('NO_CHANS')}</div>`;
+                currentUser.channels.forEach(cId => { 
+                    const chan = db.channels[cId]; 
+                    if(chan) content.innerHTML += `<div class="user-row">${getAvatarHTML(chan.name, chan.icon, false)}<div>${chan.name} <br><small style="color:#888;">ID: ${cId}</small></div><button class="action-btn" onclick="openChat('${cId}', 'channel')">${getText('OPEN')}</button></div>`; 
+                }); 
+            }
+            else if (view === 'settings') {
                 title.innerHTML = getText('NAV_SETTINGS');
                 content.innerHTML = `
-                    <div style="max-width: 500px; background: #252545; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px;">
+                    <div style="max-width: 500px; background: transparent; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px;">
                         <div><label style="color:#888; font-size:14px;">${getText('S_NICK')}</label><input type="text" id="set-nick" value="${currentUser.nick}"></div>
                         <div><label style="color:#888; font-size:14px;">${getText('S_PASS')}</label><input type="password" id="set-pass" value="${currentUser.pass}"></div>
                         <div><label style="color:#888; font-size:14px;">${getText('S_UPLOAD')}</label><input type="file" id="custom-icon-upload" accept="image/*"></div>
@@ -393,12 +479,9 @@
                         <button class="btn" onclick="saveSettings()">${getText('SAVE')}</button>
                     </div>`;
             }
-            // Інші вкладки як раніше (скорочено для економії, код аналогічний V11)
-            else if (view === 'add-friends') { title.innerHTML = getText('NAV_FIND_FRIEND'); content.innerHTML = `<div style="background: #252545; padding: 20px; border-radius: 20px;"><input type="text" id="search-id" placeholder="ID"><button class="btn" onclick="sendFriendRequest()">${getText('SEND_REQ')}</button></div>`; }
-            else if (view === 'requests') { title.innerHTML = getText('NAV_REQUESTS'); content.innerHTML = currentUser.requests.length ? "" : "0"; currentUser.requests.forEach(rId => { const sender = db.users[rId]; content.innerHTML += `<div class="user-row">${getAvatarHTML(sender.nick, sender.icon, false)}<div>${sender.nick}</div><button class="action-btn" onclick="acceptFriend('${rId}')">${getText('ACCEPT')}</button></div>`; }); }
-            else if (view === 'channels') { title.innerHTML = getText('NAV_CHANNELS'); currentUser.channels.forEach(cId => { const chan = db.channels[cId]; if(chan) content.innerHTML += `<div class="user-row">${getAvatarHTML(chan.name, chan.icon, false)}<div>${chan.name} <br><small style="color:#888;">ID: ${cId}</small></div><button class="action-btn" onclick="openChat('${cId}', 'channel')">${getText('OPEN')}</button></div>`; }); }
-            else if (view === 'create-channel') { title.innerHTML = getText('CREATE') + " (📢)"; content.innerHTML = `<div style="background: #252545; padding: 20px; border-radius: 20px;"><input type="text" id="new-chan-name" placeholder="${getText('CHAN_NAME')}"><input type="text" id="new-chan-id" placeholder="${getText('CHAN_ID')}"><button class="btn" onclick="createChannel()">${getText('CREATE')}</button></div>`; }
-            else if (view === 'find-channel') { title.innerHTML = getText('NAV_FIND_CHANNEL'); content.innerHTML = `<div style="background: #252545; padding: 20px; border-radius: 20px;"><input type="text" id="find-chan-id" placeholder="${getText('CHAN_ID')}"><button class="btn" onclick="joinChannel()">${getText('JOIN')}</button></div>`; }
+            else if (view === 'add-friends') { title.innerHTML = getText('NAV_FIND_FRIEND'); content.innerHTML = `<div style="background: transparent; padding: 20px; border-radius: 20px;"><input type="text" id="search-id" placeholder="ID"><button class="btn" onclick="sendFriendRequest()">${getText('SEND_REQ')}</button></div>`; }
+            else if (view === 'create-channel') { title.innerHTML = getText('CREATE') + " (📢)"; content.innerHTML = `<div style="background: transparent; padding: 20px; border-radius: 20px;"><input type="text" id="new-chan-name" placeholder="${getText('CHAN_NAME')}"><input type="text" id="new-chan-id" placeholder="${getText('CHAN_ID')}"><button class="btn" onclick="createChannel()">${getText('CREATE')}</button></div>`; }
+            else if (view === 'find-channel') { title.innerHTML = getText('NAV_FIND_CHANNEL'); content.innerHTML = `<div style="background: transparent; padding: 20px; border-radius: 20px;"><input type="text" id="find-chan-id" placeholder="${getText('CHAN_ID')}"><button class="btn" onclick="joinChannel()">${getText('JOIN')}</button></div>`; }
         }
 
         // --- ЛОГІКА НАЛАШТУВАНЬ ТА БОТА ---
@@ -406,12 +489,12 @@
             const newNick = document.getElementById('set-nick').value.trim(); const newPass = document.getElementById('set-pass').value;
             
             if(newNick && newNick !== currentUser.nick) { 
-                if(db.nicks[newNick] || newNick.toLowerCase().includes("pedab")) return showToast("Name Error", "red");
+                if(db.nicks[newNick] || newNick.toLowerCase().includes("pedab") || newNick.includes("👾")) return showToast("Name Error", "red");
                 delete db.nicks[currentUser.nick]; db.nicks[newNick] = currentUser.id; currentUser.nick = newNick; 
-                sendBotMessage(currentUser.id, 'BOT_NAME_CHANGED'); // Сповіщення від бота
+                sendBotMessage(currentUser.id, 'BOT_NAME_CHANGED'); 
             }
             if(newPass !== currentUser.pass) {
-                currentUser.pass = newPass; sendBotMessage(currentUser.id, 'BOT_PASS_CHANGED'); // Сповіщення від бота
+                currentUser.pass = newPass; sendBotMessage(currentUser.id, 'BOT_PASS_CHANGED'); 
             }
 
             currentUser.lang = document.getElementById('set-lang').value;
@@ -449,10 +532,8 @@
             msgs.forEach(msg => {
                 const isMe = msg.from === currentUser.id; 
                 let displayContent = msg.text;
-                // Якщо повідомлення від бота, перекладаємо його динамічно!
-                if(msg.type === 'bot') {
-                    displayContent = getText(msg.text);
-                } else if (msg.type === 'image') displayContent = `<img src="${msg.text}" class="media-content">`; 
+                if(msg.type === 'bot') { displayContent = getText(msg.text); } 
+                else if (msg.type === 'image') displayContent = `<img src="${msg.text}" class="media-content">`; 
                 else if (msg.type === 'video') displayContent = `<video src="${msg.text}" controls class="media-content"></video>`;
                 
                 content.innerHTML += `<div class="message-wrap ${isMe ? 'sent' : 'received'}"><div class="message">${displayContent}</div></div>`;
@@ -467,19 +548,17 @@
             if (!db.messages[roomId]) db.messages[roomId] = [];
             db.messages[roomId].push({ from: currentUser.id, text: text, type: 'text' });
             
-            // Якщо пишемо другу, перевіряємо чи він онлайн
             if (chatType === 'friend' && activeChatId !== 'pedab_bot') {
                 fdb.ref('status/' + activeChatId).once('value', snap => {
                     if(!snap.val()) { sendBotMessage(activeChatId, `${currentUser.id}: ${text}`); }
                 });
             }
-            
             saveDB(); input.value = "";
         }
         document.getElementById('msg-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMsg(); });
         
         // Смайли та Медіа
-        const emojisList = ["😀","😂","🥰","😎","🤔","😭","😡","👍","👎","❤️","🔥","✨","🎉","👋","👀","🤡","💀","👽","💩","🎮","💻","🚀"];
+        const emojisList = ["😀","😊","😂","🤣","🥰","😘","😅","🤩","🙄","🥳","😜","🤯","😱","🤤","😴","😇","😎","🤔","😭","😡","🤝","👏","🙌","💪","👍","👎","🙏","❤️","🔥","✨","🎉","👋","👀","🤡","💀","👽","💩","🌹","🎈","🎁","🍕","🐱","🌈","💯","✅","❌","🌟","🎵","🎮","💻","🚀"];
         function initEmojis() { document.getElementById('emoji-picker').innerHTML = emojisList.map(e => `<span onclick="addEmoji('${e}')">${e}</span>`).join(''); }
         initEmojis();
         function toggleEmojiPicker() { const p = document.getElementById('emoji-picker'); p.style.display = (p.style.display === 'flex') ? 'none' : 'flex'; }
