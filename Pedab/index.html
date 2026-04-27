@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedab Ultimate V13.2</title>
+    <title>Pedab Ultimate V13.3</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap');
 
@@ -93,7 +93,7 @@
         .nav-item:hover, .nav-item.active { background-color: #252545; color: #f29900; }
         .plus-btn { background: #f29900; border: none; color: white; width: 30px; height: 30px; border-radius: 8px; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
-        /* АВАТАРИ ТА БОРОТЬБА З РОЗТЯГУВАННЯМ */
+        /* АВАТАРИ */
         .avatar { 
             width: 55px; height: 55px; 
             min-width: 55px; min-height: 55px; 
@@ -102,7 +102,6 @@
             font-size: 26px; color: white; flex-shrink: 0; border: 3px solid #ffffff; 
             object-fit: cover; aspect-ratio: 1 / 1; 
         }
-        /* Додаткове правило для SVG, щоб вони не вилазили за краї */
         .avatar[src$=".svg"] { padding: 5px; background-color: #252545; }
         body.light-theme .avatar[src$=".svg"] { background-color: #f4f4f9; }
 
@@ -144,12 +143,12 @@
 </head>
 <body>
 
-    <div id="loading-screen"><div class="spinner"></div><h2 style="color: #f29900;">Connecting to Pedab V13.2...</h2></div>
+    <div id="loading-screen"><div class="spinner"></div><h2 style="color: #f29900;">Connecting to Pedab V13.3...</h2></div>
     <div id="toast-container"></div>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color: #f29900; margin-bottom: 20px;">PEDAB V13.2</h1>
+            <h1 style="color: #f29900; margin-bottom: 20px;">PEDAB V13.3 GLOBAL</h1>
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="LOGIN_TAB">LOGIN</div>
                 <div class="auth-tab" id="tab-reg" onclick="setAuthMode('reg')" data-i18n="REG_TAB">REGISTER</div>
@@ -234,10 +233,19 @@
             }
         }
 
-        // --- МУЛЬТИМОВНИЙ СЛОВНИК ---
+        // --- МУЛЬТИМОВНИЙ СЛОВНИК 11 МОВ ---
         const I18N = {
+            "Arabic": { LOGIN_TAB: "دخول", REG_TAB: "تسجيل", NICK_PH: "اللقب", ID_PH: "المعرف", PASS_PH: "كلمة المرور", ENTER_BTN: "دخول", REG_BTN: "تسجيل", NAV_FRIENDS: "أصدقائي", NAV_FIND_FRIEND: "بحث", NAV_REQUESTS: "الطلبات", NAV_CHANNELS: "القنوات", NAV_FIND_CHANNEL: "بحث قناة", NAV_SETTINGS: "إعدادات", CHOOSE_TAB: "اختر", MSG_PH: "رسالة (أقصى 15)", SEND_REQ: "إرسال", ACCEPT: "قبول", WRITE: "مراسلة", OPEN: "فتح", CREATE: "إنشاء", JOIN: "انضمام", SAVE: "حفظ", BOT_PASS_CHANGED: "تم تغيير كلمة المرور", BOT_NAME_CHANGED: "تم تغيير الاسم", THEME: "السمة", LIGHT: "فاتح", DARK: "داكن", S_LANG: "اللغة", S_NICK: "اللقب", S_PASS: "تغيير كلمة المرور", S_UPLOAD: "رفع أيقونة", S_STD: "أيقونات قياسية", CHAN_NAME: "اسم القناة", CHAN_ID: "معرف القناة", NO_CHANS: "لا توجد قنوات", ERROR_RES: "محجوز!" },
+            "Bengali": { LOGIN_TAB: "লগইন", REG_TAB: "নিবন্ধন", NICK_PH: "ডাকনাম", ID_PH: "আইডি", PASS_PH: "পাসওয়ার্ড", ENTER_BTN: "প্রবেশ", REG_BTN: "নিবন্ধন", NAV_FRIENDS: "বন্ধুরা", NAV_FIND_FRIEND: "খুঁজুন", NAV_REQUESTS: "অনুরোধ", NAV_CHANNELS: "চ্যানেল", NAV_FIND_CHANNEL: "চ্যানেল খুঁজুন", NAV_SETTINGS: "সেটিংস", CHOOSE_TAB: "নির্বাচন করুন", MSG_PH: "বার্তা (সর্বোচ্চ ১৫)", SEND_REQ: "পাঠান", ACCEPT: "গ্রহণ", WRITE: "বার্তা", OPEN: "খুলুন", CREATE: "তৈরি করুন", JOIN: "যোগ দিন", SAVE: "সংরক্ষণ", BOT_PASS_CHANGED: "পাসওয়ার্ড পরিবর্তিত", BOT_NAME_CHANGED: "নাম পরিবর্তিত", THEME: "থিম", LIGHT: "হালকা", DARK: "অন্ধকার", S_LANG: "ভাষা", S_NICK: "ডাকনাম", S_PASS: "পাসওয়ার্ড পরিবর্তন", S_UPLOAD: "আইকন আপলোড", S_STD: "স্ট্যান্ডার্ড আইকন", CHAN_NAME: "চ্যানেলের নাম", CHAN_ID: "চ্যানেল আইডি", NO_CHANS: "কোন চ্যানেল নেই", ERROR_RES: "সংরক্ষিত!" },
+            "Chinese (Mandarin)": { LOGIN_TAB: "登录", REG_TAB: "注册", NICK_PH: "昵称", ID_PH: "账号ID", PASS_PH: "密码", ENTER_BTN: "进入", REG_BTN: "注册", NAV_FRIENDS: "我的朋友", NAV_FIND_FRIEND: "添加朋友", NAV_REQUESTS: "请求", NAV_CHANNELS: "频道", NAV_FIND_CHANNEL: "寻找频道", NAV_SETTINGS: "设置", CHOOSE_TAB: "选择", MSG_PH: "消息(最多15字)", SEND_REQ: "发送请求", ACCEPT: "接受", WRITE: "发消息", OPEN: "打开", CREATE: "创建", JOIN: "加入", SAVE: "保存设置", BOT_PASS_CHANGED: "密码已更改", BOT_NAME_CHANGED: "名字已更改", THEME: "主题", LIGHT: "亮", DARK: "暗", S_LANG: "语言", S_NICK: "昵称", S_PASS: "修改密码", S_UPLOAD: "上传图标", S_STD: "标准图标", CHAN_NAME: "频道名称", CHAN_ID: "频道ID", NO_CHANS: "没有频道", ERROR_RES: "保留名称!" },
             "English": { LOGIN_TAB: "LOGIN", REG_TAB: "REGISTER", NICK_PH: "Nickname", ID_PH: "Your ID", PASS_PH: "Password", ENTER_BTN: "ENTER", REG_BTN: "REGISTER", NAV_FRIENDS: "👥 MY FRIENDS", NAV_FIND_FRIEND: "🔍 FIND FRIEND", NAV_REQUESTS: "📩 REQUESTS", NAV_CHANNELS: "📢 CHANNELS", NAV_FIND_CHANNEL: "🔎 FIND CHANNEL", NAV_SETTINGS: "⚙️ SETTINGS", CHOOSE_TAB: "Select tab", MSG_PH: "Message (max 15)...", SEND_REQ: "SEND REQUEST", ACCEPT: "ACCEPT", WRITE: "MESSAGE", OPEN: "OPEN", CREATE: "CREATE", JOIN: "JOIN", SAVE: "SAVE SETTINGS", BOT_PASS_CHANGED: "Password changed.", BOT_NAME_CHANGED: "Nickname updated.", THEME: "THEME", LIGHT: "Light", DARK: "Dark", S_LANG: "LANGUAGE", S_NICK: "NICKNAME", S_PASS: "CHANGE PASSWORD", S_UPLOAD: "UPLOAD CUSTOM ICON", S_STD: "STANDARD ICONS", CHAN_NAME: "Channel Name", CHAN_ID: "Channel ID", NO_CHANS: "No channels.", ERROR_RES: "Reserved!" },
+            "French": { LOGIN_TAB: "CONNEXION", REG_TAB: "INSCRIPTION", NICK_PH: "Pseudo", ID_PH: "Votre ID", PASS_PH: "Mot de passe", ENTER_BTN: "ENTRER", REG_BTN: "S'INSCRIRE", NAV_FRIENDS: "AMIS", NAV_FIND_FRIEND: "CHERCHER", NAV_REQUESTS: "REQUÊTES", NAV_CHANNELS: "CANAUX", NAV_FIND_CHANNEL: "CHERCHER CANAL", NAV_SETTINGS: "PARAMÈTRES", CHOOSE_TAB: "Choisir", MSG_PH: "Message (max 15)", SEND_REQ: "ENVOYER", ACCEPT: "ACCEPTER", WRITE: "ÉCRIRE", OPEN: "OUVRIR", CREATE: "CRÉER", JOIN: "REJOINDRE", SAVE: "SAUVEGARDER", BOT_PASS_CHANGED: "Mot de passe modifié", BOT_NAME_CHANGED: "Nom modifié", THEME: "THÈME", LIGHT: "Clair", DARK: "Sombre", S_LANG: "LANGUE", S_NICK: "PSEUDO", S_PASS: "CHANGER MOT DE PASSE", S_UPLOAD: "TÉLÉCHARGER ICÔNE", S_STD: "ICÔNES STANDARD", CHAN_NAME: "Nom du canal", CHAN_ID: "ID du canal", NO_CHANS: "Aucun canal", ERROR_RES: "Réservé !" },
+            "Hindi": { LOGIN_TAB: "लॉग इन", REG_TAB: "रजिस्टर", NICK_PH: "उपनाम", ID_PH: "आईडी", PASS_PH: "पासवर्ड", ENTER_BTN: "प्रवेश", REG_BTN: "रजिस्टर", NAV_FRIENDS: "दोस्त", NAV_FIND_FRIEND: "खोजें", NAV_REQUESTS: "अनुरोध", NAV_CHANNELS: "चैनल", NAV_FIND_CHANNEL: "चैनल खोजें", NAV_SETTINGS: "सेटिंग्स", CHOOSE_TAB: "चुनें", MSG_PH: "संदेश (अधिकतम 15)", SEND_REQ: "भेजें", ACCEPT: "स्वीकारें", WRITE: "संदेश", OPEN: "खोलें", CREATE: "बनाएं", JOIN: "शामिल हों", SAVE: "सेव", BOT_PASS_CHANGED: "पासवर्ड बदल गया", BOT_NAME_CHANGED: "नाम बदल गया", THEME: "थीम", LIGHT: "लाइट", DARK: "डार्क", S_LANG: "भाषा", S_NICK: "उपनाम", S_PASS: "पासवर्ड बदलें", S_UPLOAD: "आइकन अपलोड करें", S_STD: "मानक चिह्न", CHAN_NAME: "चैनल का नाम", CHAN_ID: "चैनल आईडी", NO_CHANS: "कोई चैनल नहीं", ERROR_RES: "आरक्षित!" },
+            "Japanese": { LOGIN_TAB: "ログイン", REG_TAB: "登録", NICK_PH: "ニックネーム", ID_PH: "あなたのID", PASS_PH: "パスワード", ENTER_BTN: "入る", REG_BTN: "登録する", NAV_FRIENDS: "友達", NAV_FIND_FRIEND: "探す", NAV_REQUESTS: "リクエスト", NAV_CHANNELS: "チャンネル", NAV_FIND_CHANNEL: "チャンネル検索", NAV_SETTINGS: "設定", CHOOSE_TAB: "選択", MSG_PH: "メッセージ(最大15)", SEND_REQ: "送信", ACCEPT: "承認", WRITE: "書く", OPEN: "開く", CREATE: "作成", JOIN: "参加", SAVE: "保存", BOT_PASS_CHANGED: "パスワード変更済", BOT_NAME_CHANGED: "名前変更済", THEME: "テーマ", LIGHT: "ライト", DARK: "ダーク", S_LANG: "言語", S_NICK: "ニックネーム", S_PASS: "パスワード変更", S_UPLOAD: "アイコンアップロード", S_STD: "標準アイコン", CHAN_NAME: "チャンネル名", CHAN_ID: "チャンネルID", NO_CHANS: "チャンネルなし", ERROR_RES: "予約済み！" },
+            "Portuguese": { LOGIN_TAB: "ENTRAR", REG_TAB: "REGISTRAR", NICK_PH: "Apelido", ID_PH: "Seu ID", PASS_PH: "Senha", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR", NAV_FRIENDS: "AMIGOS", NAV_FIND_FRIEND: "PROCURAR", NAV_REQUESTS: "PEDIDOS", NAV_CHANNELS: "CANAIS", NAV_FIND_CHANNEL: "PROCURAR CANAL", NAV_SETTINGS: "CONFIGURAÇÕES", CHOOSE_TAB: "Escolha", MSG_PH: "Mensagem (máx 15)", SEND_REQ: "ENVIAR", ACCEPT: "ACEITAR", WRITE: "MENSAGEM", OPEN: "ABRIR", CREATE: "CRIAR", JOIN: "ENTRAR", SAVE: "SALVAR", BOT_PASS_CHANGED: "Senha alterada", BOT_NAME_CHANGED: "Nome atualizado", THEME: "TEMA", LIGHT: "Claro", DARK: "Escuro", S_LANG: "IDIOMA", S_NICK: "APELIDO", S_PASS: "MUDAR SENHA", S_UPLOAD: "ENVIAR ÍCONE", S_STD: "ÍCONES PADRÃO", CHAN_NAME: "Nome do Canal", CHAN_ID: "ID do Canal", NO_CHANS: "Sem canais", ERROR_RES: "Reservado!" },
+            "Spanish": { LOGIN_TAB: "ACCESO", REG_TAB: "REGISTRO", NICK_PH: "Apodo", ID_PH: "Tu ID", PASS_PH: "Contraseña", ENTER_BTN: "ENTRAR", REG_BTN: "REGISTRAR", NAV_FRIENDS: "AMIGOS", NAV_FIND_FRIEND: "BUSCAR", NAV_REQUESTS: "SOLICITUDES", NAV_CHANNELS: "CANALES", NAV_FIND_CHANNEL: "BUSCAR CANAL", NAV_SETTINGS: "AJUSTES", CHOOSE_TAB: "Elegir", MSG_PH: "Mensaje (máx 15)", SEND_REQ: "ENVIAR", ACCEPT: "ACEPTAR", WRITE: "MENSAJE", OPEN: "ABRIR", CREATE: "CREAR", JOIN: "UNIRSE", SAVE: "GUARDAR", BOT_PASS_CHANGED: "Contraseña cambiada", BOT_NAME_CHANGED: "Nombre cambiado", THEME: "TEMA", LIGHT: "Claro", DARK: "Oscuro", S_LANG: "IDIOMA", S_NICK: "APODO", S_PASS: "CAMBIAR CONTRASEÑA", S_UPLOAD: "SUBIR ICONO", S_STD: "ICONOS ESTÁNDAR", CHAN_NAME: "Nombre del Canal", CHAN_ID: "ID del Canal", NO_CHANS: "Sin canales", ERROR_RES: "¡Reservado!" },
             "Ukrainian": { LOGIN_TAB: "ВХІД", REG_TAB: "РЕЄСТРАЦІЯ", NICK_PH: "Нікнейм", ID_PH: "Твій ID", PASS_PH: "Пароль", ENTER_BTN: "УВІЙТИ", REG_BTN: "ЗАРЕЄСТРУВАТИ", NAV_FRIENDS: "👥 МОЇ ДРУЗІ", NAV_FIND_FRIEND: "🔍 ЗНАЙТИ ДРУГА", NAV_REQUESTS: "📩 ЗАПИТИ", NAV_CHANNELS: "📢 КАНАЛИ", NAV_FIND_CHANNEL: "🔎 ЗНАЙТИ КАНАЛ", NAV_SETTINGS: "⚙️ НАЛАШТУВАННЯ", CHOOSE_TAB: "Оберіть вкладку", MSG_PH: "Смс (макс 15)...", SEND_REQ: "НАДІСЛАТИ", ACCEPT: "ПРИЙНЯТИ", WRITE: "НАПИСАТИ", OPEN: "ВІДКРИТИ", CREATE: "СТВОРИТИ", JOIN: "ДОЛУЧИТИСЯ", SAVE: "ЗБЕРЕГТИ", BOT_PASS_CHANGED: "Пароль змінено.", BOT_NAME_CHANGED: "Ім'я оновлено.", THEME: "ТЕМА", LIGHT: "Світла", DARK: "Темна", S_LANG: "МОВА", S_NICK: "НІКНЕЙМ", S_PASS: "ЗМІНИТИ ПАРОЛЬ", S_UPLOAD: "ЗАВАНТАЖИТИ ІКОНКУ", S_STD: "СТАНДАРТНІ ІКОНКИ", CHAN_NAME: "Назва каналу", CHAN_ID: "ID каналу", NO_CHANS: "Ти ще не додав каналів.", ERROR_RES: "Зарезервовано!" },
+            "Urdu": { LOGIN_TAB: "لاگ ان", REG_TAB: "رجسٹر", NICK_PH: "عرفی نام", ID_PH: "آئی ڈی", PASS_PH: "پاس ورڈ", ENTER_BTN: "داخل", REG_BTN: "رجسٹر", NAV_FRIENDS: "دوست", NAV_FIND_FRIEND: "تلاش", NAV_REQUESTS: "درخواستیں", NAV_CHANNELS: "چینلز", NAV_FIND_CHANNEL: "تلاش چینل", NAV_SETTINGS: "ترتیبات", CHOOSE_TAB: "منتخب", MSG_PH: "پیغام (زیادہ سے زیادہ 15)", SEND_REQ: "بھیجیں", ACCEPT: "قبول", WRITE: "پیغام", OPEN: "کھولیں", CREATE: "بنائیں", JOIN: "شامل", SAVE: "محفوظ", BOT_PASS_CHANGED: "پاس ورڈ تبدیل", BOT_NAME_CHANGED: "نام تبدیل", THEME: "تھیم", LIGHT: "روشن", DARK: "تاریک", S_LANG: "زبان", S_NICK: "عرفی نام", S_PASS: "پاس ورڈ تبدیل کریں", S_UPLOAD: "آئیکن اپ لوڈ کریں", S_STD: "معیاری شبیہیں", CHAN_NAME: "چینل کا نام", CHAN_ID: "چینل آئی ڈی", NO_CHANS: "کوئی چینل نہیں", ERROR_RES: "مخصوص!" }
         };
 
         function getText(key) {
@@ -286,7 +294,6 @@
             if(!db.users[currentUser.id].requests) db.users[currentUser.id].requests = [];
             if(!db.users[currentUser.id].lang) db.users[currentUser.id].lang = "English";
             if(!db.users[currentUser.id].theme) db.users[currentUser.id].theme = "dark";
-            // Захист: якщо немає іконки
             if(!db.users[currentUser.id].icon) db.users[currentUser.id].icon = "";
             
             currentUser = db.users[currentUser.id];
@@ -418,8 +425,7 @@
 
                         <div><label style="color:#888; font-size:14px;">${getText('S_LANG')}</label>
                         <select id="set-lang">
-                            <option value="English" ${currentUser.lang==="English"?"selected":""}>English</option>
-                            <option value="Ukrainian" ${currentUser.lang==="Ukrainian"?"selected":""}>Ukrainian</option>
+                            ${["Arabic","Bengali","Chinese (Mandarin)","English","French","Hindi","Japanese","Portuguese","Spanish","Ukrainian","Urdu"].map(l => `<option value="${l}" ${currentUser.lang===l?"selected":""}>${l}</option>`).join('')}
                         </select></div>
                         <div><label style="color:#888; font-size:14px;">${getText('THEME')}</label>
                         <select id="set-theme"><option value="dark" ${currentUser.theme==="dark"?"selected":""}>${getText('DARK')}</option><option value="light" ${currentUser.theme==="light"?"selected":""}>${getText('LIGHT')}</option></select></div>
@@ -455,7 +461,6 @@
                 reader.onload = function(e) { currentUser.icon = e.target.result; saveDB(); }; 
                 reader.readAsDataURL(fileInput.files[0]); 
             } else { 
-                // Якщо файл не завантажено, зберігаємо стандартну іконку (або пусту, якщо вибрано "Без іконки")
                 currentUser.icon = stdIcon;
                 saveDB(); 
             }
