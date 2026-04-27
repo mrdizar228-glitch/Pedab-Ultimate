@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedab Ultimate V13.1 (Mobile Pro)</title>
+    <title>Pedab Ultimate V13.2</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap');
 
@@ -75,20 +75,17 @@
             .sidebar-overlay.show { display: block; }
             .main-view { width: 100vw; }
             
-            /* Масштабування контенту */
             .content-area { padding: 15px; }
             .user-row { flex-wrap: wrap; justify-content: center; text-align: center; padding: 20px 10px; }
             .user-row > div { width: 100%; margin-top: 5px; }
             .action-btn { width: 100%; margin-left: 0; margin-top: 10px; }
             
-            /* Чат */
             .message-wrap { max-width: 85%; }
             .chat-input-area { padding: 10px; gap: 5px; }
             .btn-send { padding: 0 15px; height: 50px; }
             .icon-btn { width: 50px; height: 50px; font-size: 20px; }
             .emoji-picker { width: 90vw; left: 5vw; bottom: 70px; }
             
-            /* Налаштування */
             .settings-container { padding: 15px !important; }
         }
 
@@ -96,8 +93,19 @@
         .nav-item:hover, .nav-item.active { background-color: #252545; color: #f29900; }
         .plus-btn { background: #f29900; border: none; color: white; width: 30px; height: 30px; border-radius: 8px; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
-        /* АВАТАРИ */
-        .avatar { width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; color: white; flex-shrink: 0; border: 3px solid #ffffff; object-fit: cover; }
+        /* АВАТАРИ ТА БОРОТЬБА З РОЗТЯГУВАННЯМ */
+        .avatar { 
+            width: 55px; height: 55px; 
+            min-width: 55px; min-height: 55px; 
+            max-width: 55px; max-height: 55px; 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            font-size: 26px; color: white; flex-shrink: 0; border: 3px solid #ffffff; 
+            object-fit: cover; aspect-ratio: 1 / 1; 
+        }
+        /* Додаткове правило для SVG, щоб вони не вилазили за краї */
+        .avatar[src$=".svg"] { padding: 5px; background-color: #252545; }
+        body.light-theme .avatar[src$=".svg"] { background-color: #f4f4f9; }
+
         .friend-avatar { background-color: #8a2be2; } .stranger-avatar { background-color: #0000ff; } .bot-avatar { background-color: #333; }
 
         .view-header { padding: 15px 20px; background: #1a1a2e; border-bottom: 4px solid #252545; font-size: 22px; display: flex; align-items: center; }
@@ -136,12 +144,12 @@
 </head>
 <body>
 
-    <div id="loading-screen"><div class="spinner"></div><h2 style="color: #f29900;">Connecting to Pedab V13...</h2></div>
+    <div id="loading-screen"><div class="spinner"></div><h2 style="color: #f29900;">Connecting to Pedab V13.2...</h2></div>
     <div id="toast-container"></div>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color: #f29900; margin-bottom: 20px;">PEDAB V13 MOBILE</h1>
+            <h1 style="color: #f29900; margin-bottom: 20px;">PEDAB V13.2</h1>
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-login" onclick="setAuthMode('login')" data-i18n="LOGIN_TAB">LOGIN</div>
                 <div class="auth-tab" id="tab-reg" onclick="setAuthMode('reg')" data-i18n="REG_TAB">REGISTER</div>
@@ -228,9 +236,8 @@
 
         // --- МУЛЬТИМОВНИЙ СЛОВНИК ---
         const I18N = {
-            "English": { LOGIN_TAB: "LOGIN", REG_TAB: "REGISTER", NICK_PH: "Nickname", ID_PH: "Your ID", PASS_PH: "Password", ENTER_BTN: "ENTER", REG_BTN: "REGISTER", NAV_FRIENDS: "👥 MY FRIENDS", NAV_FIND_FRIEND: "🔍 FIND FRIEND", NAV_REQUESTS: "📩 REQUESTS", NAV_CHANNELS: "📢 CHANNELS", NAV_FIND_CHANNEL: "🔎 FIND CHANNEL", NAV_SETTINGS: "⚙️ SETTINGS", CHOOSE_TAB: "Select tab", MSG_PH: "Message (max 15)...", SEND_REQ: "SEND REQUEST", ACCEPT: "ACCEPT", WRITE: "MESSAGE", OPEN: "OPEN", CREATE: "CREATE", JOIN: "JOIN", SAVE: "SAVE SETTINGS", BOT_PASS_CHANGED: "Password changed.", BOT_NAME_CHANGED: "Nickname updated.", THEME: "THEME", LIGHT: "Light", DARK: "Dark", S_LANG: "LANGUAGE", S_NICK: "NICKNAME", S_PASS: "CHANGE PASSWORD", S_UPLOAD: "UPLOAD CUSTOM ICON", CHAN_NAME: "Channel Name", CHAN_ID: "Channel ID", NO_CHANS: "No channels.", ERROR_RES: "Reserved!" },
-            "Ukrainian": { LOGIN_TAB: "ВХІД", REG_TAB: "РЕЄСТРАЦІЯ", NICK_PH: "Нікнейм", ID_PH: "Твій ID", PASS_PH: "Пароль", ENTER_BTN: "УВІЙТИ", REG_BTN: "ЗАРЕЄСТРУВАТИ", NAV_FRIENDS: "👥 МОЇ ДРУЗІ", NAV_FIND_FRIEND: "🔍 ЗНАЙТИ ДРУГА", NAV_REQUESTS: "📩 ЗАПИТИ", NAV_CHANNELS: "📢 КАНАЛИ", NAV_FIND_CHANNEL: "🔎 ЗНАЙТИ КАНАЛ", NAV_SETTINGS: "⚙️ НАЛАШТУВАННЯ", CHOOSE_TAB: "Оберіть вкладку", MSG_PH: "Смс (макс 15)...", SEND_REQ: "НАДІСЛАТИ", ACCEPT: "ПРИЙНЯТИ", WRITE: "НАПИСАТИ", OPEN: "ВІДКРИТИ", CREATE: "СТВОРИТИ", JOIN: "ДОЛУЧИТИСЯ", SAVE: "ЗБЕРЕГТИ", BOT_PASS_CHANGED: "Пароль змінено.", BOT_NAME_CHANGED: "Ім'я оновлено.", THEME: "ТЕМА", LIGHT: "Світла", DARK: "Темна", S_LANG: "МОВА", S_NICK: "НІКНЕЙМ", S_PASS: "ЗМІНИТИ ПАРОЛЬ", S_UPLOAD: "ЗАВАНТАЖИТИ ІКОНКУ", CHAN_NAME: "Назва каналу", CHAN_ID: "ID каналу", NO_CHANS: "Ти ще не додав каналів.", ERROR_RES: "Зарезервовано!" },
-            // Додай сюди інші 9 мов за бажанням!
+            "English": { LOGIN_TAB: "LOGIN", REG_TAB: "REGISTER", NICK_PH: "Nickname", ID_PH: "Your ID", PASS_PH: "Password", ENTER_BTN: "ENTER", REG_BTN: "REGISTER", NAV_FRIENDS: "👥 MY FRIENDS", NAV_FIND_FRIEND: "🔍 FIND FRIEND", NAV_REQUESTS: "📩 REQUESTS", NAV_CHANNELS: "📢 CHANNELS", NAV_FIND_CHANNEL: "🔎 FIND CHANNEL", NAV_SETTINGS: "⚙️ SETTINGS", CHOOSE_TAB: "Select tab", MSG_PH: "Message (max 15)...", SEND_REQ: "SEND REQUEST", ACCEPT: "ACCEPT", WRITE: "MESSAGE", OPEN: "OPEN", CREATE: "CREATE", JOIN: "JOIN", SAVE: "SAVE SETTINGS", BOT_PASS_CHANGED: "Password changed.", BOT_NAME_CHANGED: "Nickname updated.", THEME: "THEME", LIGHT: "Light", DARK: "Dark", S_LANG: "LANGUAGE", S_NICK: "NICKNAME", S_PASS: "CHANGE PASSWORD", S_UPLOAD: "UPLOAD CUSTOM ICON", S_STD: "STANDARD ICONS", CHAN_NAME: "Channel Name", CHAN_ID: "Channel ID", NO_CHANS: "No channels.", ERROR_RES: "Reserved!" },
+            "Ukrainian": { LOGIN_TAB: "ВХІД", REG_TAB: "РЕЄСТРАЦІЯ", NICK_PH: "Нікнейм", ID_PH: "Твій ID", PASS_PH: "Пароль", ENTER_BTN: "УВІЙТИ", REG_BTN: "ЗАРЕЄСТРУВАТИ", NAV_FRIENDS: "👥 МОЇ ДРУЗІ", NAV_FIND_FRIEND: "🔍 ЗНАЙТИ ДРУГА", NAV_REQUESTS: "📩 ЗАПИТИ", NAV_CHANNELS: "📢 КАНАЛИ", NAV_FIND_CHANNEL: "🔎 ЗНАЙТИ КАНАЛ", NAV_SETTINGS: "⚙️ НАЛАШТУВАННЯ", CHOOSE_TAB: "Оберіть вкладку", MSG_PH: "Смс (макс 15)...", SEND_REQ: "НАДІСЛАТИ", ACCEPT: "ПРИЙНЯТИ", WRITE: "НАПИСАТИ", OPEN: "ВІДКРИТИ", CREATE: "СТВОРИТИ", JOIN: "ДОЛУЧИТИСЯ", SAVE: "ЗБЕРЕГТИ", BOT_PASS_CHANGED: "Пароль змінено.", BOT_NAME_CHANGED: "Ім'я оновлено.", THEME: "ТЕМА", LIGHT: "Світла", DARK: "Темна", S_LANG: "МОВА", S_NICK: "НІКНЕЙМ", S_PASS: "ЗМІНИТИ ПАРОЛЬ", S_UPLOAD: "ЗАВАНТАЖИТИ ІКОНКУ", S_STD: "СТАНДАРТНІ ІКОНКИ", CHAN_NAME: "Назва каналу", CHAN_ID: "ID каналу", NO_CHANS: "Ти ще не додав каналів.", ERROR_RES: "Зарезервовано!" },
         };
 
         function getText(key) {
@@ -279,6 +286,8 @@
             if(!db.users[currentUser.id].requests) db.users[currentUser.id].requests = [];
             if(!db.users[currentUser.id].lang) db.users[currentUser.id].lang = "English";
             if(!db.users[currentUser.id].theme) db.users[currentUser.id].theme = "dark";
+            // Захист: якщо немає іконки
+            if(!db.users[currentUser.id].icon) db.users[currentUser.id].icon = "";
             
             currentUser = db.users[currentUser.id];
             applyLanguageAndTheme(); updateProfileSidebar();
@@ -331,6 +340,7 @@
             if(!currentUser.channels) currentUser.channels = []; if(!currentUser.lang) currentUser.lang = "English";
             if(!currentUser.friends) currentUser.friends = []; if(!currentUser.requests) currentUser.requests = [];
             if(!currentUser.theme) currentUser.theme = "dark";
+            if(!currentUser.icon) currentUser.icon = "";
             
             document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex';
             setOnlineStatus(); applyLanguageAndTheme(); updateProfileSidebar(); setView('friends');
@@ -389,7 +399,23 @@
                     <div class="settings-container" style="max-width: 100%; width: 100%; background: transparent; padding: 0px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px;">
                         <div><label style="color:#888; font-size:14px;">${getText('S_NICK')}</label><input type="text" id="set-nick" value="${currentUser.nick}"></div>
                         <div><label style="color:#888; font-size:14px;">${getText('S_PASS')}</label><input type="password" id="set-pass" value="${currentUser.pass}"></div>
-                        <div><label style="color:#888; font-size:14px;">${getText('S_UPLOAD')}</label><input type="file" id="custom-icon-upload" accept="image/*"></div>
+                        
+                        <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 1px solid #3a3a5a;">
+                            <label style="color:#888; font-size:14px;">${getText('S_UPLOAD')}</label>
+                            <input type="file" id="custom-icon-upload" accept="image/*" style="border:none; padding:5px; background:transparent;">
+                        </div>
+                        
+                        <div><label style="color:#888; font-size:14px;">${getText('S_STD')}</label>
+                        <select id="set-icon">
+                            <option value="" ${currentUser.icon===""?"selected":""}>Без іконки</option>
+                            <option value="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u1f47d.svg" ${currentUser.icon.includes('1f47d')?"selected":""}>👽 Alien</option>
+                            <option value="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u1f320.svg" ${currentUser.icon.includes('1f320')?"selected":""}>🌠 Fall Star</option>
+                            <option value="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u1f3ae.svg" ${currentUser.icon.includes('1f3ae')?"selected":""}>🎮 Controller</option>
+                            <option value="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u1f579.svg" ${currentUser.icon.includes('1f579')?"selected":""}>🕹️ Controller 2</option>
+                            <option value="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u1f916.svg" ${currentUser.icon.includes('1f916')?"selected":""}>🤖 Robot</option>
+                            <option value="https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u1f480.svg" ${currentUser.icon.includes('1f480')?"selected":""}>💀 Skull</option>
+                        </select></div>
+
                         <div><label style="color:#888; font-size:14px;">${getText('S_LANG')}</label>
                         <select id="set-lang">
                             <option value="English" ${currentUser.lang==="English"?"selected":""}>English</option>
@@ -407,7 +433,9 @@
 
         // --- ЛОГІКА НАЛАШТУВАНЬ ТА БОТА ---
         function saveSettings() {
-            const newNick = document.getElementById('set-nick').value.trim(); const newPass = document.getElementById('set-pass').value;
+            const newNick = document.getElementById('set-nick').value.trim(); 
+            const newPass = document.getElementById('set-pass').value;
+            const stdIcon = document.getElementById('set-icon').value;
             
             if(newNick && newNick !== currentUser.nick) { 
                 if(db.nicks[newNick] || newNick.toLowerCase().includes("pedab") || newNick.includes("👾")) return showToast("Name Error", "red");
@@ -422,8 +450,15 @@
             currentUser.theme = document.getElementById('set-theme').value;
             
             const fileInput = document.getElementById('custom-icon-upload');
-            if (fileInput.files.length > 0) { const reader = new FileReader(); reader.onload = function(e) { currentUser.icon = e.target.result; saveDB(); }; reader.readAsDataURL(fileInput.files[0]); } 
-            else { saveDB(); }
+            if (fileInput.files.length > 0) { 
+                const reader = new FileReader(); 
+                reader.onload = function(e) { currentUser.icon = e.target.result; saveDB(); }; 
+                reader.readAsDataURL(fileInput.files[0]); 
+            } else { 
+                // Якщо файл не завантажено, зберігаємо стандартну іконку (або пусту, якщо вибрано "Без іконки")
+                currentUser.icon = stdIcon;
+                saveDB(); 
+            }
         }
 
         function sendFriendRequest() { const targetId = document.getElementById('search-id').value.trim(); if (!targetId || targetId === currentUser.id) return; if (!db.users[targetId]) return; if (!db.users[targetId].requests) db.users[targetId].requests = []; if (!currentUser.friends) currentUser.friends = []; if (db.users[targetId].requests.includes(currentUser.id)) return; if (currentUser.friends.includes(targetId)) return; db.users[targetId].requests.push(currentUser.id); saveDB(); showToast(getText('REQ_SENT'), "green"); document.getElementById('search-id').value = ""; }
