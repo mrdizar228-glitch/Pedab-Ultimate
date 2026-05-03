@@ -538,7 +538,7 @@
         function addEmoji(emoji) { const i = document.getElementById('msg-input'); if(i.value.length < 15) { i.value += emoji; } document.getElementById('emoji-picker').style.display = 'none'; i.focus(); }
         function handleFileUpload(event) {
             const file = event.target.files[0]; if (!file || !activeChatId) return;
-            if (file.size > 500000) { showToast("Макс 0.5 МБ", "yellow"); event.target.value = ''; return; }
+            if (file.size > 35000000) { showToast("Макс 35 МБ", "yellow"); event.target.value = ''; return; }
             const reader = new FileReader();
             reader.onload = function(e) {
                 const roomId = chatType === 'channel' ? 'chan_' + activeChatId : getChatRoomId(currentUser.id, activeChatId);
